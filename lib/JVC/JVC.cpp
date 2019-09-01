@@ -4,10 +4,12 @@
 // Class for handling communication with JVC car radio through the remote control wire //
 // Based on:                                                                           //
 // https://hackaday.io/project/28150-jvc-to-clio                                       //
+// https://www.avforums.com/threads/jvc-stalk-adapter-diy.248455/page-3                //
 // https://pastebin.com/fXbScxV4                                                       //
 // ----------------------------------------------------------------------------------- // 
 
 #include "JVC.h"
+#include "commands_dfs.h"
 #include "Arduino.h"
 
 JVC::JVC()
