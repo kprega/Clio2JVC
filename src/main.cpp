@@ -61,7 +61,7 @@ void SendToCarRadio()
         case 26:
         case 27:
         case 128:
-            carRadio.SendCommand(aNumber);
+            carRadio.Action(aNumber);
             break;
 
         default:
