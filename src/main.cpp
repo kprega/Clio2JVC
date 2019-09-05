@@ -23,18 +23,18 @@ void Unrecognized(const char *command)
 void ShowRadioCommands()
 {
     Serial.println("List of available radio commands:");
-    Serial.println("  4: increase volume level");
-    Serial.println("  5: decrease volume level");
-    Serial.println("  8: change input source");
-    Serial.println(" 13: change equalizer preset(?)");
-    Serial.println(" 14: mute/unmute speakers");
-    Serial.println(" 18: track forward");
-    Serial.println(" 19: track backward");
-    Serial.println(" 20: switch to next folder");
-    Serial.println(" 21: switch to previous folder");
-    Serial.println(" 26: enables voice control");
-    Serial.println(" 27: answer BT call(?)");
-    Serial.println("128: turn on/off(?)");
+    Serial.println("1: increase volume level");
+    Serial.println("2: decrease volume level");
+    Serial.println("3: change input source");
+    Serial.println("4: change equalizer preset(?)");
+    Serial.println("5: mute/unmute speakers");
+    Serial.println("6: track forward");
+    Serial.println("7: track backward");
+    Serial.println("8: switch to next folder");
+    Serial.println("9: switch to previous folder");
+    Serial.println("10: enables voice control");
+    Serial.println("11: answer BT call(?)");
+    Serial.println("12: turn on/off(?)");
 }
 
 void SendToCarRadio()
@@ -49,21 +49,46 @@ void SendToCarRadio()
 
         switch (aNumber)
         {
-        case 4:
-        case 5:
-        case 8:
-        case 13:
-        case 14:
-        case 18:
-        case 19:
-        case 20:
-        case 21:
-        case 26:
-        case 27:
-        case 128:
-            carRadio.Action(aNumber);
+        case 1:
+            Serial.println("Sending VOL_UP");
+            carRadio.Action(VOL_UP);
             break;
-
+        case 2:
+            Serial.println("Sending VOL_DONW");
+            carRadio.Action(VOL_DOWN);
+            break;
+        case 3:
+            Serial.println("Sending SOURCE");
+            carRadio.Action(SOURCE);
+            break;
+        case 4:
+            Serial.println("Sending EQUALIZER");
+            carRadio.Action(EQUALIZER);
+            break;
+        case 5:
+            Serial.println("Sending MUTE");
+            carRadio.Action(MUTE);
+            break;
+        case 6:
+            Serial.println("Sending TRACK_FORW");
+            carRadio.Action(TRACK_FORW);
+            break;
+        case 7:
+            Serial.println("Sending TRACK_BACK");
+            carRadio.Action(TRACK_BACK);
+            break;
+        case 8:
+            Serial.println("Sending FOLDER_FORW");
+            carRadio.Action(FOLDER_FORW);
+            break;
+        case 9:
+            Serial.println("Sending FOLDER_BACK");
+            carRadio.Action(FOLDER_BACK);
+            break;
+        case 10:
+            Serial.println("Sending VOICE_CONTROL");
+            carRadio.Action(VOICE_CONTROL);
+            break;
         default:
             Serial.println("Given command index not supported.");
             ShowRadioCommands();
