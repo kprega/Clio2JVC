@@ -18,6 +18,7 @@ public:
 	JVC();
 	void SetupRemote(int remote_pin);
 	void Action(unsigned char action);
+
 private:
 	void SendCommand(unsigned char value);
 	void SendValue(unsigned char value);
