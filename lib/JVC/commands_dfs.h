@@ -28,9 +28,9 @@
 #define FOLDER_FORW    0x14  // Track forward hold
 #define FOLDER_BACK    0x15  // Track backward hold
 #define VOICE_CONTROL  0x1A  // Voice control
-#define BTCALL         0x1B  // Answer bluetooth call
-#define POWER          0x80  // Power on/off
-#define UNKNOWN1       0x37  // Unknown function 1
-#define UNKNOWN2       0x58  // Unknown function 2
+#define BTCALL         0x1B  // Answer bluetooth call (Not tested yet)
+#define POWER          0x80  // Power on/off (didn't work for KD-X342BT)
+#define UNKNOWN1       0x37  // Unknown function 1 (LCD test)
+#define UNKNOWN2       0x58  // Unknown function 2 (displays SN WRITING, then SN NG)
 
 #endif

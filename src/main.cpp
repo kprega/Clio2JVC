@@ -33,8 +33,6 @@ void ShowRadioCommands()
     Serial.println("8: switch to next folder");
     Serial.println("9: switch to previous folder");
     Serial.println("10: enables voice control");
-    Serial.println("11: answer BT call(?)");
-    Serial.println("12: turn on/off(?)");
 }
 
 void SendToCarRadio()

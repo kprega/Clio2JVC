@@ -6,6 +6,7 @@
 // https://hackaday.io/project/28150-jvc-to-clio                                       //
 // https://www.avforums.com/threads/jvc-stalk-adapter-diy.248455/page-3                //
 // https://pastebin.com/fXbScxV4                                                       //
+// https://www.youtube.com/watch?v=8OANaTe5kxI                                         //
 // ----------------------------------------------------------------------------------- // 
 
 #include "JVC.h"
@@ -14,7 +15,8 @@
 
 JVC::JVC()
 {
-
+    _interval = 2; // ms
+    _waitTime = 20; // ms
 }
 
 void JVC::SetupRemote(int remote_pin)
@@ -24,78 +26,23 @@ void JVC::SetupRemote(int remote_pin)
 	digitalWrite(_remotePin, LOW);  // Output LOW to make sure optocoupler is off
 }
 
-void JVC::VolumeUp()
+// Executes action given as parameter 
+void JVC::Action(unsigned char action)
 {
-	SendCommand(VOL_UP);
-}
-
-void JVC::VolumeDown()
-{
-	SendCommand(VOL_DOWN);
-}
-
-void JVC::ToggleSource()
-{
-	SendCommand(SOURCE);
-}
-
-void JVC::Mute()
-{
-	SendCommand(MUTE);
-}
-
-void JVC::TrackForward()
-{
-	SendCommand(TRACK_FORW);
-}
-
-void JVC::TrackBack()
-{
-	SendCommand(TRACK_BACK);
-}
-
-void JVC::FolderForward()
-{
-	SendCommand(FOLDER_FORW);
-}
-
-void JVC::FolderBack()
-{
-	SendCommand(FOLDER_BACK);
-}
-
-void JVC::VoiceControl()
-{
-	SendCommand(VOICE_CONTROL);
-}
-
-void JVC::Equalizer()
-{
-	SendCommand(EQUALIZER);
-}
-
-void JVC::AnswerBTCall()
-{
-	SendCommand(BTCALL);
-}
-
-void JVC::TogglePower()
-{
-	SendCommand(POWER);
+    // Works on KD-X342BT
+    SendCommand((unsigned char) action);
+	delay(_interval);
+    SendCommand((unsigned char) action);
+    delay(_waitTime);
 }
 
 // Send a command to the radio, including the header, start bit, address and stop bits
 void JVC::SendCommand(unsigned char value)
 {
-    Serial.print("Sending to JVC device: ");
-    Serial.println(value);
-    Preamble();                               // Send signals to precede a command to the radio
-    for (unsigned char i = 0; i < 3; i++)     // Repeat address, command and stop bits three times so radio will pick them up properly
-	{           
-        SendValue(ADDRESS);                   // Send the address
-        SendValue((unsigned char)value);      // Send the command
-        Postamble();                          // Send signals to follow a command to the radio
-    }
+    Preamble();                               // Send signals to precede a command to the radio      
+    SendValue(ADDRESS);                       // Send the address
+    SendValue((unsigned char)value);          // Send the command
+    Postamble();                              // Send signals to follow a command to the radio
 }
 
 // Send a value (7 bits, LSB is sent first, value can be an address or command)
