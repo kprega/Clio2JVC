@@ -3,7 +3,7 @@
 #include <JVC.h>
 
 JVC carRadio;
-SerialCommand command;
+SerialCommand commandLine;
 
 // Prints out list of available commands
 void ShowHelp()
@@ -40,7 +40,7 @@ void SendToCarRadio()
     int aNumber;
     char *arg;
 
-    arg = command.next();
+    arg = commandLine.next();
     if (arg != NULL)
     {
         aNumber = atoi(arg); // Converts a char string to an integer
@@ -101,9 +101,9 @@ void SendToCarRadio()
 
 void SetupCommandLine()
 {
-    command.addCommand("help", ShowHelp);
-    command.addCommand("radio", SendToCarRadio);
-    command.setDefaultHandler(Unrecognized);
+    commandLine.addCommand("help", ShowHelp);
+    commandLine.addCommand("radio", SendToCarRadio);
+    commandLine.setDefaultHandler(Unrecognized);
 }
 
 void setup()
@@ -122,5 +122,5 @@ void setup()
 
 void loop()
 {
-    command.readSerial(); // We don't do much, just process serial commands
+    commandLine.readSerial(); // We don't do much, just process serial commands
 }
