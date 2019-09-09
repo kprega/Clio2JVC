@@ -147,7 +147,7 @@ unsigned long newTime;
 void SpeedSignalAnalysis()
 {
     currentTime = millis();
-    while (newTime - currentTime < 10000)
+    while (newTime - currentTime < 10000UL)
     {
         pulseDuration = pulseIn(signalPin, LOW);
         delay(500);
@@ -187,14 +187,16 @@ void setup()
 }
 
 unsigned long timeZero;
+unsigned long timeOne;
 void loop()
 {
     commandLine.readSerial(); // We don't do much, just process serial commands
-    if (millis() - timeZero > 750)
+    timeOne = millis();
+    if (timeOne - timeZero > 750UL )
     {
-        // Reset time
-        timeZero = millis();
-        // Syncronize with display
+        // Synchronize with display
         clio.Sync();
+        // Reset time zero
+        timeZero = millis();
     }
 }
