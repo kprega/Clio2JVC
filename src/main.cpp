@@ -180,12 +180,21 @@ void setup()
     // Prepare command line
     SetupCommandLine();
 
+    // Store time
+    timeZero = millis();
+
     Serial.println("Ready");
 }
 
+unsigned long timeZero;
 void loop()
 {
     commandLine.readSerial(); // We don't do much, just process serial commands
-    delay(750);
-    clio.Sync();
+    if (millis() - timeZero > 750)
+    {
+        // Reset time
+        timeZero = millis();
+        // Syncronize with display
+        clio.Sync();
+    }
 }
