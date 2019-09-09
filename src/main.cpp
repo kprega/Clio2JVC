@@ -1,8 +1,14 @@
 #include <SerialCommand.h>
 #include <commands_dfs.h>
-#include <JVC.h>
+#include <JvcRadio.h>
+#include <Clio.h>
+#include <mcp_can.h>
 
-JVC carRadio;
+int csPin = 9;
+int interruptPin = 3;
+
+JvcRadio carRadio;
+Clio clio(csPin, interruptPin);
 SerialCommand commandLine;
 
 // Prints out list of available commands
@@ -12,6 +18,7 @@ void ShowHelp()
     Serial.println("help - displays this message");
     Serial.println("radio [commandIndex] - sends command with specified index to radio device");
     Serial.println("radio ? - displays available radio commands");
+    Serial.println("display [text] - writes text to Clio's display");
 }
 
 // Handler for command that isn't matched
@@ -103,7 +110,15 @@ void SetupCommandLine()
 {
     commandLine.addCommand("help", ShowHelp);
     commandLine.addCommand("radio", SendToCarRadio);
+    commandLine.addCommand("display", PrintToDisplay);
     commandLine.setDefaultHandler(Unrecognized);
+}
+
+void PrintToDisplay()
+{
+    char *arg;
+    arg = commandLine.next();
+    clio.PrintDisplay(*arg);
 }
 
 void setup()
@@ -115,6 +130,8 @@ void setup()
 
     // Set up car radio to work with pin 4
     carRadio.SetupRemote(4);
+    // Initialize display
+    clio.SetupDisplay();
     SetupCommandLine();
 
     Serial.println("Ready");
@@ -123,4 +140,6 @@ void setup()
 void loop()
 {
     commandLine.readSerial(); // We don't do much, just process serial commands
+    delay(750);
+    clio.Sync();
 }

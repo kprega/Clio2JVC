@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------------- //
-// JVC.h                                                                               //
+// JvcRadio.h                                                                               //
 // ----------------------------------------------------------------------------------- //
 // Class for handling communication with JVC car radio through the remote control wire //
 // Based on:                                                                           //
@@ -9,13 +9,13 @@
 // https://www.youtube.com/watch?v=8OANaTe5kxI                                         //
 // ----------------------------------------------------------------------------------- //
 
-#ifndef JVC_h
-#define JVC_h
+#ifndef JvcRadio_h
+#define JvcRadio_h
 
-class JVC
+class JvcRadio
 {
 public:
-	JVC();
+	JvcRadio();
 	void SetupRemote(int remote_pin);
 	void Action(unsigned char action);
 

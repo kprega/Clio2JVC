@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------------- //
-// JVC.cpp                                                                             //
+// JvcRadio.cpp                                                                             //
 // ----------------------------------------------------------------------------------- //
 // Class for handling communication with JVC car radio through the remote control wire //
 // Based on:                                                                           //
@@ -9,17 +9,17 @@
 // https://www.youtube.com/watch?v=8OANaTe5kxI                                         //
 // ----------------------------------------------------------------------------------- //
 
-#include "JVC.h"
+#include "JvcRadio.h"
 #include "commands_dfs.h"
 #include "Arduino.h"
 
-JVC::JVC()
+JvcRadio::JvcRadio()
 {
     _interval = 2;  // ms
     _waitTime = 20; // ms
 }
 
-void JVC::SetupRemote(int remote_pin)
+void JvcRadio::SetupRemote(int remote_pin)
 {
     _remotePin = remote_pin;
     pinMode(_remotePin, OUTPUT);
@@ -27,7 +27,7 @@ void JVC::SetupRemote(int remote_pin)
 }
 
 // Executes action given as parameter
-void JVC::Action(unsigned char action)
+void JvcRadio::Action(unsigned char action)
 {
     // Works on KD-X342BT
     SendCommand((unsigned char)action);
@@ -37,7 +37,7 @@ void JVC::Action(unsigned char action)
 }
 
 // Send a command to the radio, including the header, start bit, address and stop bits
-void JVC::SendCommand(unsigned char value)
+void JvcRadio::SendCommand(unsigned char value)
 {
     Preamble();                      // Send signals to precede a command to the radio
     SendValue(ADDRESS);              // Send the address
@@ -46,7 +46,7 @@ void JVC::SendCommand(unsigned char value)
 }
 
 // Send a value (7 bits, LSB is sent first, value can be an address or command)
-void JVC::SendValue(unsigned char value)
+void JvcRadio::SendValue(unsigned char value)
 {
     unsigned char i, tmp = 1;
     for (i = 0; i < sizeof(value) * 8 - 1; i++)
@@ -64,7 +64,7 @@ void JVC::SendValue(unsigned char value)
 }
 
 // Signals to transmit a '0' bit
-void JVC::SendZero()
+void JvcRadio::SendZero()
 {
     digitalWrite(_remotePin, HIGH); // Output HIGH for 1 pulse width
     delayMicroseconds(PULSE_WIDTH);
@@ -73,7 +73,7 @@ void JVC::SendZero()
 }
 
 // Signals to transmit a '1' bit
-void JVC::SendOne()
+void JvcRadio::SendOne()
 {
     digitalWrite(_remotePin, HIGH); // Output HIGH for 1 pulse width
     delayMicroseconds(PULSE_WIDTH);
@@ -82,7 +82,7 @@ void JVC::SendOne()
 }
 
 // Signals to precede a command to the radio
-void JVC::Preamble()
+void JvcRadio::Preamble()
 {
     // HEADER: always LOW (1 pulse width), HIGH (16 pulse widths), LOW (8 pulse widths)
     digitalWrite(_remotePin, LOW); // Make sure output is LOW for 1 pulse width, so the header starts with a rising edge
@@ -97,7 +97,7 @@ void JVC::Preamble()
 }
 
 // Signals to follow a command to the radio
-void JVC::Postamble()
+void JvcRadio::Postamble()
 {
     // STOP BITS: always 1
     SendOne();
