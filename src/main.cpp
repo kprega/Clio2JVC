@@ -19,6 +19,8 @@ void ShowHelp()
     Serial.println("radio [commandIndex] - sends command with specified index to radio device");
     Serial.println("radio ? - displays available radio commands");
     Serial.println("display [text] - writes text to Clio's display");
+    Serial.println("speed - turns on speed signal measurement for 10 seconds");
+    Serial.println("distance [value] - sets distance for speed signal measurement analysis");
 }
 
 // Handler for command that isn't matched
@@ -111,6 +113,8 @@ void SetupCommandLine()
     commandLine.addCommand("help", ShowHelp);
     commandLine.addCommand("radio", SendToCarRadio);
     commandLine.addCommand("display", PrintToDisplay);
+    commandLine.addCommand("speed", SpeedSignalAnalysis);
+    commandLine.addCommand("distance", SetDistance);
     commandLine.setDefaultHandler(Unrecognized);
 }
 
@@ -121,6 +125,42 @@ void PrintToDisplay()
     clio.PrintDisplay(*arg);
 }
 
+void SetDistance()
+{
+    char *arg;
+    arg = commandLine.next();
+
+    if (arg != NULL)
+    {
+        distance = atoi(arg);
+        Serial.print("Distance set to ");
+        Serial.println(distance);
+    }
+}
+
+int pulseDuration;
+int signalPin = 8;
+double speed = 0;
+double distance = 105;
+unsigned long currentTime;
+unsigned long newTime;
+void SpeedSignalAnalysis()
+{
+    currentTime = millis();
+    while (newTime - currentTime < 10000)
+    {
+        pulseDuration = pulseIn(signalPin, LOW);
+        delay(500);
+        speed = (distance * 3600) / pulseDuration;
+        Serial.print("Pulse duration: ");
+        Serial.print(pulseDuration);
+        Serial.print("   Estimated speed: ");
+        Serial.print(speed);
+        Serial.println("km/h");
+        newTime = millis();
+    }
+}
+
 void setup()
 {
     // Await serial monitor open
@@ -128,10 +168,16 @@ void setup()
         ;
     Serial.begin(9600);
 
+    // Prepare to read speed signal info on pin 8
+    pinMode(signalPin, INPUT_PULLUP);
+
     // Set up car radio to work with pin 4
     carRadio.SetupRemote(4);
+
     // Initialize display
     clio.SetupDisplay();
+
+    // Prepare command line
     SetupCommandLine();
 
     Serial.println("Ready");
