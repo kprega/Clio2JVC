@@ -16,13 +16,14 @@
 class Clio
 {
 public:
-	Clio(byte csPin, byte interruptPin);
+	Clio(byte csPin, byte interruptPin, byte displaySwitchPin);
 	void SetupDisplay();
 	void PrintDisplay(char text);
     void Sync();
 private:
     byte _csPin;
     byte _interruptPin;
+    byte _displaySwitchPin;
     MCP_CAN canBus = MCP_CAN(_csPin);
     byte canBusSendResult;
     void SendMessageAndPrintSerial(int frame, unsigned char *message, char *msgName);

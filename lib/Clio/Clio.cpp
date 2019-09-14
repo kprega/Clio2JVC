@@ -14,10 +14,11 @@
 #include "can_messages.h"
 #include "Arduino.h"
 
-Clio::Clio(byte csPin, byte interruptPin)
+Clio::Clio(byte csPin, byte interruptPin, byte displaySwitchPin)
 {
     _interruptPin = interruptPin;
     _csPin = csPin;
+    _displaySwitchPin = displaySwitchPin;
     canBus = MCP_CAN(csPin);
 
     // start CAN
@@ -34,6 +35,7 @@ Clio::Clio(byte csPin, byte interruptPin)
 
 void Clio::SetupDisplay()
 {
+    digitalWrite(_displaySwitchPin, HIGH);
     SendMessageAndPrintSerial(0x3DF, START_SYNC, "START_SYNC");
     delay(1);
     SendMessageAndPrintSerial(0x3DF, KEEPALIVE, "KEEPALIVE");

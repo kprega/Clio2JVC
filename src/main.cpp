@@ -4,12 +4,22 @@
 #include <Clio.h>
 #include <mcp_can.h>
 
-int csPin = 9;
-int interruptPin = 3;
+byte csPin = 9;
+byte interruptPin = 2;
+byte displaySwitchPin = 4;
 
 JvcRadio carRadio;
-Clio clio(csPin, interruptPin);
+Clio clio(csPin, interruptPin, displaySwitchPin);
 SerialCommand commandLine;
+
+int pulseDuration;
+int signalPin = 8;
+double speed = 0;
+double distance = 105;
+unsigned long currentTime;
+unsigned long newTime;
+unsigned long timeZero;
+unsigned long timeOne;
 
 // Prints out list of available commands
 void ShowHelp()
@@ -61,7 +71,7 @@ void SendToCarRadio()
             carRadio.Action(VOL_UP);
             break;
         case 2:
-            Serial.println("Sending VOL_DONW");
+            Serial.println("Sending VOL_DOWN");
             carRadio.Action(VOL_DOWN);
             break;
         case 3:
@@ -138,12 +148,6 @@ void SetDistance()
     }
 }
 
-int pulseDuration;
-int signalPin = 8;
-double speed = 0;
-double distance = 105;
-unsigned long currentTime;
-unsigned long newTime;
 void SpeedSignalAnalysis()
 {
     currentTime = millis();
@@ -186,8 +190,6 @@ void setup()
     Serial.println("Ready");
 }
 
-unsigned long timeZero;
-unsigned long timeOne;
 void loop()
 {
     commandLine.readSerial(); // We don't do much, just process serial commands
