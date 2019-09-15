@@ -13,6 +13,7 @@
 #include "mcp_can_dfs.h"
 #include "can_messages.h"
 #include "Arduino.h"
+#include "string.h"
 
 Clio::Clio(byte csPin, byte interruptPin, byte displaySwitchPin)
 {
@@ -53,7 +54,7 @@ void Clio::SetupDisplay()
     Serial.println("Setup display complete");
 }
 
-void Clio::SendMessageAndPrintSerial(int frame, unsigned char *message, char *msgName)
+void Clio::SendMessageAndPrintSerial(int frame, unsigned char *message, String msgName)
 {
     canBusSendResult = canBus.sendMsgBuf(frame, 0, 8, message);
     if (canBusSendResult == CAN_OK)
@@ -74,31 +75,19 @@ void Clio::Sync()
     SendMessageAndPrintSerial(0x3DF, KEEPALIVE, "KEEPALIVE");
 }
 
-void Clio::PrintDisplay(char text_to_display)
+void Clio::PrintDisplay(String s)
 {
-    char *arg;
-    String s = "";
-
-    arg = &text_to_display;
-    while (arg != NULL)
+    if (s.length() != 8)
     {
-        s += arg;
-        arg = &text_to_display;
-        if (arg != NULL)
-        { // check if space separator (if several spaces, just one is inserted)
-            s += ' ';
-        }
-        if (s.length() > 8)
-        { // check if length max
-            s.remove(8);
-        }
+        Serial.println("String must be 8 bytes long");
+        return;
     }
 
-    while (s.length() < 8)
-    {
-        s += ' '; // pad string with spaces to make 8 byte string
-    }
+    Serial.print("Printing \"");
+    Serial.print(s);
+    Serial.println("\" to the display");
 
+    // Preparing message for display
     String TextCmd = "";
     TextCmd += '\x10';
     TextCmd += '\x19';
@@ -107,10 +96,12 @@ void Clio::PrintDisplay(char text_to_display)
     TextCmd += '\x01';
     TextCmd += s;
     TextCmd += '\x10';
-    TextCmd += s;
+    TextCmd += s.substring(0, 7);
     TextCmd += "    "; // 4 spaces to make a 12-byte string
     char charArray[28] = {'\0'};
     TextCmd.toCharArray(charArray, 27);
+
+    // Sending message
     send_to_display(0x121, (byte *)(charArray), 27);
 }
 

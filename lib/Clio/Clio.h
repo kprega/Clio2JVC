@@ -12,13 +12,14 @@
 #define Clio_h
 
 #include "mcp_can.h"
+#include "string.h"
 
 class Clio
 {
 public:
 	Clio(byte csPin, byte interruptPin, byte displaySwitchPin);
 	void SetupDisplay();
-	void PrintDisplay(char text);
+	void PrintDisplay(String str);
     void Sync();
 private:
     byte _csPin;
@@ -26,7 +27,7 @@ private:
     byte _displaySwitchPin;
     MCP_CAN canBus = MCP_CAN(_csPin);
     byte canBusSendResult;
-    void SendMessageAndPrintSerial(int frame, unsigned char *message, char *msgName);
+    void SendMessageAndPrintSerial(int frame, unsigned char *message, String msgName);
     void send_to_display(word id, byte *data, byte datasz);
     void do_send_to(word id, byte * data, byte datasz, byte filler);
     long unsigned int canFrameId;

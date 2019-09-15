@@ -132,8 +132,7 @@ void PrintToDisplay()
 {
     char *arg;
     arg = commandLine.next();
-    clio.PrintDisplay(*arg);
-    clio.DisplayString(arg);
+    clio.PrintDisplay(arg);
 }
 
 void SetDistance()
