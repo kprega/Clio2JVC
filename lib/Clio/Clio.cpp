@@ -36,7 +36,7 @@ Clio::Clio(byte csPin, byte interruptPin, byte displaySwitchPin)
 
 void Clio::SetupDisplay()
 {
-    digitalWrite(_displaySwitchPin, HIGH);
+    DisplayOn();
     SendMessageAndPrintSerial(0x3DF, START_SYNC, "START_SYNC");
     delay(1);
     SendMessageAndPrintSerial(0x3DF, KEEPALIVE, "KEEPALIVE");
@@ -196,4 +196,14 @@ int Clio::ReceiveFromRemote()
         }
     }
     return 0;
+}
+
+void Clio::DisplayOn()
+{
+    digitalWrite(_displaySwitchPin, HIGH);    
+}
+
+void Clio::DisplayOff()
+{
+    digitalWrite(_displaySwitchPin, LOW);    
 }

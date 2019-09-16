@@ -22,6 +22,8 @@ public:
 	void PrintDisplay(String str);
     void Sync();
     int ReceiveFromRemote();
+    void DisplayOn();
+    void DisplayOff();
 private:
     byte _csPin;
     byte _interruptPin;
