@@ -42,16 +42,20 @@ void Unrecognized(const char *command)
 void ShowRadioCommands()
 {
     Serial.println("List of available radio commands:");
-    Serial.println("1: increase volume level");
-    Serial.println("2: decrease volume level");
-    Serial.println("3: change input source");
-    Serial.println("4: change equalizer preset(?)");
-    Serial.println("5: mute/unmute speakers");
-    Serial.println("6: track forward");
-    Serial.println("7: track backward");
-    Serial.println("8: switch to next folder");
-    Serial.println("9: switch to previous folder");
-    Serial.println("10: enables voice control");
+    Serial.println("1: mute button - short - mute/unmute speakers");
+    Serial.println("2: mute button - long - mute/unmute speakers");
+    Serial.println("3: volume up - short - increases volume by 1");
+    Serial.println("4: volume up - long - increases volume by 2");
+    Serial.println("5: volume down - short - decreases volume by 1");
+    Serial.println("6: volume down - long - decreases volume by 2");
+    Serial.println("7: source button - short - toggle input source");
+    Serial.println("8: source button - long - activate voice control");
+    Serial.println("9: track left - short - track backward");
+    Serial.println("10: track left - long - toggle equalizer");
+    Serial.println("11: track right - short - track forward");
+    Serial.println("12: track right - long - unused");
+    Serial.println("13: roll down - folder backward");
+    Serial.println("14: roll up - folder forward");
 }
 
 void SendToCarRadio()
@@ -63,58 +67,96 @@ void SendToCarRadio()
     if (arg != NULL)
     {
         aNumber = atoi(arg); // Converts a char string to an integer
-
-        switch (aNumber)
-        {
-        case 1:
-            Serial.println("Sending VOL_UP");
-            carRadio.Action(VOL_UP);
-            break;
-        case 2:
-            Serial.println("Sending VOL_DOWN");
-            carRadio.Action(VOL_DOWN);
-            break;
-        case 3:
-            Serial.println("Sending SOURCE");
-            carRadio.Action(SOURCE);
-            break;
-        case 4:
-            Serial.println("Sending EQUALIZER");
-            carRadio.Action(EQUALIZER);
-            break;
-        case 5:
-            Serial.println("Sending MUTE");
-            carRadio.Action(MUTE);
-            break;
-        case 6:
-            Serial.println("Sending TRACK_FORW");
-            carRadio.Action(TRACK_FORW);
-            break;
-        case 7:
-            Serial.println("Sending TRACK_BACK");
-            carRadio.Action(TRACK_BACK);
-            break;
-        case 8:
-            Serial.println("Sending FOLDER_FORW");
-            carRadio.Action(FOLDER_FORW);
-            break;
-        case 9:
-            Serial.println("Sending FOLDER_BACK");
-            carRadio.Action(FOLDER_BACK);
-            break;
-        case 10:
-            Serial.println("Sending VOICE_CONTROL");
-            carRadio.Action(VOICE_CONTROL);
-            break;
-        default:
-            Serial.println("Given command index not supported.");
-            ShowRadioCommands();
-            break;
-        }
+        InterpreteRadioCommand(aNumber);
     }
     else
     {
         Serial.println("No arguments");
+    }
+}
+
+void InterpreteRadioCommand(int commandIndex)
+{
+    switch (commandIndex)
+    {
+    case 1:
+        Serial.println("Sending MUTE");
+        carRadio.Action(MUTE);
+        clio.PrintDisplay("MUTE");
+        break;
+    case 2:
+        Serial.println("Sending MUTE");
+        carRadio.Action(MUTE);
+        clio.PrintDisplay("MUTE");
+        break;
+    case 3:
+        Serial.println("Sending VOL_UP");
+        carRadio.Action(VOL_UP);
+        clio.PrintDisplay("VOL+");
+        break;
+    case 4:
+        Serial.println("Sending VOL_UP twice");
+        carRadio.Action(VOL_UP);
+        carRadio.Action(VOL_UP);
+        clio.PrintDisplay("VOL++");
+        break;
+    case 5:
+        Serial.println("Sending VOL_DOWN");
+        carRadio.Action(VOL_DOWN);
+        clio.PrintDisplay("VOL-");
+        break;
+    case 6:
+        Serial.println("Sending VOL_DOWN twice");
+        carRadio.Action(VOL_DOWN);
+        carRadio.Action(VOL_DOWN);
+        clio.PrintDisplay("VOL--");
+        break;
+    case 7:
+        Serial.println("Sending SOURCE");
+        carRadio.Action(SOURCE);
+        clio.PrintDisplay("SOURCE");
+        break;
+    case 8:
+        Serial.println("Sending VOICE_CONTROL");
+        carRadio.Action(VOICE_CONTROL);
+        clio.PrintDisplay("VOICE");
+        break;
+    case 9:
+        Serial.println("Sending TRACK_BACK");
+        carRadio.Action(TRACK_BACK);
+        clio.PrintDisplay("TR BACK");
+        break;
+    case 10:
+        Serial.println("Sending EQUALIZER");
+        carRadio.Action(EQUALIZER);
+        clio.PrintDisplay("EQ");
+        break;
+    case 11:
+        Serial.println("Sending TRACK_FORW");
+        carRadio.Action(TRACK_FORW);
+        clio.PrintDisplay("TR FORW");
+        break;
+    case 12:
+        Serial.println("Index not in use");
+        clio.PrintDisplay("NONE");
+        //Serial.println("Sending EQUALIZER");
+        //carRadio.Action(EQUALIZER);
+        break;
+    case 13:
+        Serial.println("Sending FOLDER_FORW");
+        carRadio.Action(FOLDER_FORW);
+        clio.PrintDisplay("FOL FORW");
+        break;
+    case 14:
+        Serial.println("Sending FOLDER_BACK");
+        carRadio.Action(FOLDER_BACK);
+        clio.PrintDisplay("FOL BACK");
+        break;
+    default:
+        Serial.println("Given command index not supported.");
+        clio.PrintDisplay("ERROR");
+        ShowRadioCommands();
+        break;
     }
 }
 
@@ -161,6 +203,10 @@ void SpeedSignalAnalysis()
         Serial.print("   Estimated speed: ");
         Serial.print(speed);
         Serial.println("km/h");
+        String spd;
+        spd += "SPD ";
+        spd += speed;
+        clio.PrintDisplay(spd);
         newTime = millis();
     }
 }
@@ -187,14 +233,17 @@ void setup()
     // Store time
     timeZero = millis();
 
+    clio.PrintDisplay("WELCOME");
     Serial.println("Ready");
 }
 
 void loop()
 {
     commandLine.readSerial(); // We don't do much, just process serial commands
+    InterpreteRadioCommand(clio.ReceiveFromRemote());
+
     timeOne = millis();
-    if (timeOne - timeZero > 750UL )
+    if (timeOne - timeZero > 750UL)
     {
         // Synchronize with display
         clio.Sync();
