@@ -167,9 +167,19 @@ void SetupCommandLine()
     commandLine.addCommand("display", PrintToDisplay);
     commandLine.addCommand("speed", SpeedSignalAnalysis);
     commandLine.addCommand("distance", SetDistance);
-    commandLine.addCommand("disp_on", clio.DisplayOn);
-    commandLine.addCommand("disp_off", clio.DisplayOff);
+    commandLine.addCommand("disp_on", DisplayOn);
+    commandLine.addCommand("disp_off", DisplayOff);
     commandLine.setDefaultHandler(Unrecognized);
+}
+
+void DisplayOn()
+{
+    clio.DisplayOn();
+}
+
+void DisplayOff()
+{
+    clio.DisplayOff();
 }
 
 void PrintToDisplay()
