@@ -24,38 +24,36 @@ unsigned long timeOne;
 // Prints out list of available commands
 void ShowHelp()
 {
-    Serial.println("List of available commands:");
-    Serial.println("help - displays this message");
-    Serial.println("radio [commandIndex] - sends command with specified index to radio device");
-    Serial.println("radio ? - displays available radio commands");
-    Serial.println("display [text] - writes text to Clio's display");
-    Serial.println("speed - turns on speed signal measurement for 10 seconds");
-    Serial.println("distance [value] - sets distance for speed signal measurement analysis");
+    // List of available commands:
+    // radio [commandIndex] - sends command with specified index to radio device
+    // display [text] - writes text to Clio's display
+    // speed - turns on speed signal measurement for 10 seconds
+    // distance [value] - sets distance for speed signal measurement analysis
 }
 
 // Handler for command that isn't matched
 void Unrecognized(const char *command)
 {
-    Serial.println("Command not recognized. Type 'help' to display available commands.");
+    Serial.println("Command not recognized.");
 }
 
 void ShowRadioCommands()
 {
-    Serial.println("List of available radio commands:");
-    Serial.println("1: mute button - short - mute/unmute speakers");
-    Serial.println("2: mute button - long - mute/unmute speakers");
-    Serial.println("3: volume up - short - increases volume by 1");
-    Serial.println("4: volume up - long - increases volume by 2");
-    Serial.println("5: volume down - short - decreases volume by 1");
-    Serial.println("6: volume down - long - decreases volume by 2");
-    Serial.println("7: source button - short - toggle input source");
-    Serial.println("8: source button - long - activate voice control");
-    Serial.println("9: track left - short - track backward");
-    Serial.println("10: track left - long - toggle equalizer");
-    Serial.println("11: track right - short - track forward");
-    Serial.println("12: track right - long - unused");
-    Serial.println("13: roll down - folder backward");
-    Serial.println("14: roll up - folder forward");
+    // List of available radio commands:
+    // 1: mute button - short - mute/unmute speakers
+    // 2: mute button - long - mute/unmute speakers
+    // 3: volume up - short - increases volume by 1
+    // 4: volume up - long - increases volume by 2
+    // 5: volume down - short - decreases volume by 1
+    // 6: volume down - long - decreases volume by 2
+    // 7: source button - short - toggle input source
+    // 8: source button - long - activate voice control
+    // 9: track left - short - track backward
+    // 10: track left - long - toggle equalizer
+    // 11: track right - short - track forward
+    // 12: track right - long - unused
+    // 13: roll down - folder backward
+    // 14: roll up - folder forward
 }
 
 void SendToCarRadio()
@@ -139,8 +137,6 @@ void InterpreteRadioCommand(int commandIndex)
     case 12:
         Serial.println("Index not in use");
         clio.PrintDisplay("NONE");
-        //Serial.println("Sending EQUALIZER");
-        //carRadio.Action(EQUALIZER);
         break;
     case 13:
         Serial.println("Sending FOLDER_FORW");
@@ -153,16 +149,12 @@ void InterpreteRadioCommand(int commandIndex)
         clio.PrintDisplay("FOL BACK");
         break;
     default:
-        Serial.println("Given command index not supported.");
-        clio.PrintDisplay("ERROR");
-        ShowRadioCommands();
         break;
     }
 }
 
 void SetupCommandLine()
 {
-    commandLine.addCommand("help", ShowHelp);
     commandLine.addCommand("radio", SendToCarRadio);
     commandLine.addCommand("display", PrintToDisplay);
     commandLine.addCommand("speed", SpeedSignalAnalysis);
@@ -207,7 +199,7 @@ void SetDistance()
 void SpeedSignalAnalysis()
 {
     currentTime = millis();
-    while (newTime - currentTime < 10000UL)
+    do
     {
         pulseDuration = pulseIn(signalPin, LOW);
         delay(500);
@@ -217,12 +209,8 @@ void SpeedSignalAnalysis()
         Serial.print("   Estimated speed: ");
         Serial.print(speed);
         Serial.println("km/h");
-        String spd;
-        spd += "SPD ";
-        spd += speed;
-        clio.PrintDisplay(spd);
         newTime = millis();
-    }
+    } while (newTime - currentTime < 10000UL);
 }
 
 void setup()
