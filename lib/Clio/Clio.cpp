@@ -104,7 +104,7 @@ void Clio::PrintDisplay(String s)
     TextCmd += '\x01';
     TextCmd += s;
     TextCmd += '\x10';
-    TextCmd += s; //s.substring(0, 7); // substring not necessary as already trimmed to 8 characters
+    TextCmd += s;      //s.substring(0, 7); // substring not necessary as already trimmed to 8 characters
     TextCmd += "    "; // 4 spaces to make a 12-byte string
     char charArray[28] = {'\0'};
     TextCmd.toCharArray(charArray, 27);
@@ -179,20 +179,76 @@ int Clio::ReceiveFromRemote()
             SendMessageAndPrintSerial(0x4A9, REMOTE_ACK, "REMOTE_ACK");
 
             // Find out what button was pressed
-            if (memcmp(canReceivedMsg, REMOTE_PAUSE, 8))             return 1;
-            if (memcmp(canReceivedMsg, REMOTE_PAUSE_LONG, 8))        return 2;
-            if (memcmp(canReceivedMsg, REMOTE_VOL_UP, 8))            return 3;
-            if (memcmp(canReceivedMsg, REMOTE_VOL_UP_LONG, 8))       return 4;
-            if (memcmp(canReceivedMsg, REMOTE_VOL_DOWN, 8))          return 5;
-            if (memcmp(canReceivedMsg, REMOTE_VOL_DOWN_LONG, 8))     return 6;
-            if (memcmp(canReceivedMsg, REMOTE_SELECT, 8))            return 7;
-            if (memcmp(canReceivedMsg, REMOTE_SELECT_LONG, 8))       return 8;
-            if (memcmp(canReceivedMsg, REMOTE_SOURCE_LEFT, 8))       return 9;
-            if (memcmp(canReceivedMsg, REMOTE_SOURCE_LEFT_LONG, 8))  return 10;
-            if (memcmp(canReceivedMsg, REMOTE_SOURCE_RIGHT, 8))      return 11;
-            if (memcmp(canReceivedMsg, REMOTE_SOURCE_RIGHT_LONG, 8)) return 12;
-            if (memcmp(canReceivedMsg, REMOTE_ROLL_DOWN, 8))         return 13;
-            if (memcmp(canReceivedMsg, REMOTE_ROLL_UP, 8))           return 14;
+            if (memcmp(canReceivedMsg, REMOTE_PAUSE, 8))
+            {
+                Serial.println("REMOTE_PAUSE received");
+                return 1;
+            }
+            if (memcmp(canReceivedMsg, REMOTE_PAUSE_LONG, 8))
+            {
+                Serial.println("REMOTE_PAUSE_LONG received");
+                return 2;
+            }
+            if (memcmp(canReceivedMsg, REMOTE_VOL_UP, 8))
+            {
+                Serial.println("REMOTE_VOL_UP received");
+                return 3;
+            }
+            if (memcmp(canReceivedMsg, REMOTE_VOL_UP_LONG, 8))
+            {
+                Serial.println("REMOTE_VOL_UP_LONG received");
+                return 4;
+            }
+            if (memcmp(canReceivedMsg, REMOTE_VOL_DOWN, 8))
+            {
+                Serial.println("REMOTE_VOL_DOWN received");
+                return 5;
+            }
+            if (memcmp(canReceivedMsg, REMOTE_VOL_DOWN_LONG, 8))
+            {
+                Serial.println("REMOTE_VOL_DOWN_LONG received");
+                return 6;
+            }
+            if (memcmp(canReceivedMsg, REMOTE_SELECT, 8))
+            {
+                Serial.println("REMOTE_SELECT received");
+                return 7;
+            }
+            if (memcmp(canReceivedMsg, REMOTE_SELECT_LONG, 8))
+            {
+                Serial.println("REMOTE_SELECT_LONG received");
+                return 8;
+            }
+            if (memcmp(canReceivedMsg, REMOTE_SOURCE_LEFT, 8))
+            {
+                Serial.println("REMOTE_SOURCE_LEFT received");
+                return 9;
+            }
+            if (memcmp(canReceivedMsg, REMOTE_SOURCE_LEFT_LONG, 8))
+            {
+                Serial.println("REMOTE_SOURCE_LEFT_LONG received");
+                return 10;
+            }
+            if (memcmp(canReceivedMsg, REMOTE_SOURCE_RIGHT, 8))
+            {
+                Serial.println("REMOTE_SOURCE_RIGHT received");
+                return 11;
+            }
+            if (memcmp(canReceivedMsg, REMOTE_SOURCE_RIGHT_LONG, 8))
+            {
+                Serial.println("REMOTE_SOURCE_RIGHT_LONG received");
+                return 12;
+            }
+            if (memcmp(canReceivedMsg, REMOTE_ROLL_DOWN, 8))
+            {
+                Serial.println("REMOTE_ROLL_DOWN received");
+                return 13;
+            }
+            if (memcmp(canReceivedMsg, REMOTE_ROLL_UP, 8))
+            {
+                Serial.println("REMOTE_ROLL_UP received");
+                return 14;
+            }
         }
     }
     return 0;
@@ -200,10 +256,10 @@ int Clio::ReceiveFromRemote()
 
 void Clio::DisplayOn()
 {
-    digitalWrite(_displaySwitchPin, HIGH);    
+    digitalWrite(_displaySwitchPin, HIGH);
 }
 
 void Clio::DisplayOff()
 {
-    digitalWrite(_displaySwitchPin, LOW);    
+    digitalWrite(_displaySwitchPin, LOW);
 }
