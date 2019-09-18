@@ -15,11 +15,15 @@ SerialCommand commandLine;
 int pulseDuration;
 int signalPin = 8;
 double speed = 0;
-double distance = 105;
+double distance = 105; // milimeters
 unsigned long currentTime;
 unsigned long newTime;
-unsigned long timeZero;
-unsigned long timeOne;
+unsigned long refreshTime;
+unsigned long syncTime0;
+unsigned long syncTime1;
+unsigned long timeout = 5000;             // miliseconds
+unsigned long syncRate = 750;             // miliseconds
+unsigned long refreshRate = 2 * syncRate; // miliseconds
 
 // Prints out list of available commands
 void ShowHelp()
@@ -73,8 +77,12 @@ void SendToCarRadio()
     }
 }
 
-void InterpreteRadioCommand(int commandIndex)
+// This method interpretes command to be sent to car radio unit
+// Returns true if command has been successfully interpreted (i.e. commandIndex was in range from 1 to 14), false otherwise
+//
+bool InterpreteRadioCommand(int commandIndex)
 {
+    bool result = true;
     switch (commandIndex)
     {
     case 1:
@@ -149,8 +157,10 @@ void InterpreteRadioCommand(int commandIndex)
         clio.PrintDisplay("FOL BACK");
         break;
     default:
+        result = false;
         break;
     }
+    return result;
 }
 
 void SetupCommandLine()
@@ -178,8 +188,8 @@ void PrintToDisplay()
 {
     char *arg;
     arg = commandLine.next();
-    String str;
-    str += arg;
+    String str(arg);
+    // str += arg;
     clio.PrintDisplay(str);
 }
 
@@ -213,6 +223,12 @@ void SpeedSignalAnalysis()
     } while (newTime - currentTime < 10000UL);
 }
 
+double GetSpeed()
+{
+    pulseDuration = pulseIn(signalPin, LOW);
+    return (distance /*mm*/ * 3600) / pulseDuration /*μs*/; // result in km/h
+}
+
 void setup()
 {
     // Await serial monitor open
@@ -233,23 +249,45 @@ void setup()
     SetupCommandLine();
 
     // Store time
-    timeZero = millis();
+    syncTime0 = millis();
+    currentTime = syncTime0;
+    refreshTime = syncTime0;
 
-    clio.PrintDisplay("WELCOME");
     Serial.println("Ready");
 }
 
 void loop()
 {
     commandLine.readSerial(); // We don't do much, just process serial commands
-    InterpreteRadioCommand(clio.ReceiveFromRemote());
 
-    timeOne = millis();
-    if (timeOne - timeZero > 750UL)
+    // Check if a command has been sent from remote or serial
+    if (InterpreteRadioCommand(clio.ReceiveFromRemote()))
+    {
+        // If a command has been sent we'll wait few seconds before switching display back to speed mode
+        // Store current time to calculate message timeout below
+        currentTime = millis();
+    }
+
+    // Synchronize display every 750 miliseconds
+    syncTime1 = millis();
+    if (syncTime1 - syncTime0 > syncRate)
     {
         // Synchronize with display
         clio.Sync();
         // Reset time zero
-        timeZero = millis();
+        syncTime0 = millis();
+    }
+
+    // Check if timeout from remote and refresh time rate have passed, if yes, display speed
+    newTime = millis();
+    if (newTime - currentTime > timeout && newTime - refreshTime > refreshRate)
+    {
+        // Prepare string
+        String speed("SPD ");
+        speed += GetSpeed();
+        // Display message
+        clio.PrintDisplay(speed);
+        // Store refresh time
+        refreshTime = millis();
     }
 }
