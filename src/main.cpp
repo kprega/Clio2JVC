@@ -233,74 +233,14 @@ double GetSpeed()
 void AdjustVolume()
 {
     //acceleration from below level
-    if (speed > 50 && addedVolume <= 0)
-    {
-        carRadio.Action(VOL_UP);
-        addedVolume++;
-    }
-    if (speed > 60 && addedVolume <= 1)
-    {
-        carRadio.Action(VOL_UP);
-        addedVolume++;
-    }
-    if (speed > 70 && addedVolume <= 2)
-    {
-        carRadio.Action(VOL_UP);
-        addedVolume++;
-    }
-    if (speed > 80 && addedVolume <= 3)
-    {
-        carRadio.Action(VOL_UP);
-        addedVolume++;
-    }
-    if (speed > 90 && addedVolume <= 4)
-    {
-        carRadio.Action(VOL_UP);
-        addedVolume++;
-    }
-    if (speed > 100 && addedVolume <= 5)
-    {
-        carRadio.Action(VOL_UP);
-        addedVolume++;
-    }
-    if (speed > 110 && addedVolume <= 6)
+    if (speed > addedVolume * 10 + 50 && addedVolume <= 7)
     {
         carRadio.Action(VOL_UP);
         addedVolume++;
     }
 
     //deceleration from above level
-    if (speed < 50 && addedVolume >= 1)
-    {
-        carRadio.Action(VOL_DOWN);
-        addedVolume--;
-    }
-    if (speed < 60 && addedVolume >= 2)
-    {
-        carRadio.Action(VOL_DOWN);
-        addedVolume--;
-    }
-    if (speed < 70 && addedVolume >= 3)
-    {
-        carRadio.Action(VOL_DOWN);
-        addedVolume--;
-    }
-    if (speed < 80 && addedVolume >= 4)
-    {
-        carRadio.Action(VOL_DOWN);
-        addedVolume--;
-    }
-    if (speed < 90 && addedVolume >= 5)
-    {
-        carRadio.Action(VOL_DOWN);
-        addedVolume--;
-    }
-    if (speed < 100 && addedVolume >= 6)
-    {
-        carRadio.Action(VOL_DOWN);
-        addedVolume--;
-    }
-    if (speed < 110 && addedVolume >= 7)
+    if (speed < (addedVolume - 1) * 10 + 50 && addedVolume >= 1)
     {
         carRadio.Action(VOL_DOWN);
         addedVolume--;
