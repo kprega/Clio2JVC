@@ -24,6 +24,7 @@ unsigned long syncTime1;
 unsigned long timeout = 5000;             // miliseconds
 unsigned long syncRate = 750;             // miliseconds
 unsigned long refreshRate = 2 * syncRate; // miliseconds
+int addedVolume = 0;
 
 // Prints out list of available commands
 void ShowHelp()
@@ -229,6 +230,83 @@ double GetSpeed()
     return (distance /*mm*/ * 3600) / pulseDuration /*μs*/; // result in km/h
 }
 
+void AdjustVolume()
+{
+    //acceleration from below level
+    if (speed > 50 && addedVolume <= 0)
+    {
+        carRadio.Action(VOL_UP);
+        addedVolume++;
+    }
+    if (speed > 60 && addedVolume <= 1)
+    {
+        carRadio.Action(VOL_UP);
+        addedVolume++;
+    }
+    if (speed > 70 && addedVolume <= 2)
+    {
+        carRadio.Action(VOL_UP);
+        addedVolume++;
+    }
+    if (speed > 80 && addedVolume <= 3)
+    {
+        carRadio.Action(VOL_UP);
+        addedVolume++;
+    }
+    if (speed > 90 && addedVolume <= 4)
+    {
+        carRadio.Action(VOL_UP);
+        addedVolume++;
+    }
+    if (speed > 100 && addedVolume <= 5)
+    {
+        carRadio.Action(VOL_UP);
+        addedVolume++;
+    }
+    if (speed > 110 && addedVolume <= 6)
+    {
+        carRadio.Action(VOL_UP);
+        addedVolume++;
+    }
+
+    //deceleration from above level
+    if (speed < 50 && addedVolume >= 1)
+    {
+        carRadio.Action(VOL_DOWN);
+        addedVolume--;
+    }
+    if (speed < 60 && addedVolume >= 2)
+    {
+        carRadio.Action(VOL_DOWN);
+        addedVolume--;
+    }
+    if (speed < 70 && addedVolume >= 3)
+    {
+        carRadio.Action(VOL_DOWN);
+        addedVolume--;
+    }
+    if (speed < 80 && addedVolume >= 4)
+    {
+        carRadio.Action(VOL_DOWN);
+        addedVolume--;
+    }
+    if (speed < 90 && addedVolume >= 5)
+    {
+        carRadio.Action(VOL_DOWN);
+        addedVolume--;
+    }
+    if (speed < 100 && addedVolume >= 6)
+    {
+        carRadio.Action(VOL_DOWN);
+        addedVolume--;
+    }
+    if (speed < 110 && addedVolume >= 7)
+    {
+        carRadio.Action(VOL_DOWN);
+        addedVolume--;
+    }
+}
+
 void setup()
 {
     // Await serial monitor open
@@ -290,4 +368,7 @@ void loop()
         // Store refresh time
         refreshTime = millis();
     }
+
+    // Automatically adjust volume level basing on speed
+    AdjustVolume();
 }
