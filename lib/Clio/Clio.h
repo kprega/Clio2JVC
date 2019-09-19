@@ -18,19 +18,21 @@ class Clio
 {
 public:
 	Clio(byte csPin, byte interruptPin, byte displaySwitchPin);
-	void SetupDisplay();
 	void PrintDisplay(String str);
     void Sync();
     int ReceiveFromRemote();
     void DisplayOn();
     void DisplayOff();
+    void ShowPacketData();
 private:
+    bool isNewMessageAvailable;
     byte _csPin;
     byte _interruptPin;
     byte _displaySwitchPin;
     MCP_CAN canBus = MCP_CAN(_csPin);
     byte canBusSendResult;
-    void SendMessageAndPrintSerial(int frame, unsigned char *message, String msgName);
+	void SetupDisplay();
+    void SendMessage(int frame, unsigned char *message);
     void send_to_display(word id, byte *data, byte datasz);
     void do_send_to(word id, byte * data, byte datasz, byte filler);
     long unsigned int canFrameId;

@@ -4,37 +4,40 @@
 #include <Clio.h>
 #include <mcp_can.h>
 
-byte csPin = 9;
-byte interruptPin = 2;
-byte displaySwitchPin = 4;
+#define DEBUG_MODE true
+
+// Pinout for Arduino
+const byte csPin = 9;
+const byte interruptPin = 2;
+const byte displaySwitchPin = 4;
+const byte signalPin = 8;
 
 JvcRadio carRadio;
 Clio clio(csPin, interruptPin, displaySwitchPin);
 SerialCommand commandLine;
 
+// Variables used for car's speed calculation
 int pulseDuration;
-int signalPin = 8;
 double speed = 0;
 double distance = 105; // milimeters
+
+// Variables used to handle time-based events
 unsigned long currentTime;
 unsigned long newTime;
 unsigned long refreshTime;
 unsigned long syncTime0;
 unsigned long syncTime1;
-unsigned long timeout = 5000;             // miliseconds
-unsigned long syncRate = 750;             // miliseconds
-unsigned long refreshRate = 2 * syncRate; // miliseconds
-int addedVolume = 0;
 
-// Prints out list of available commands
-void ShowHelp()
-{
-    // List of available commands:
-    // radio [commandIndex] - sends command with specified index to radio device
-    // display [text] - writes text to Clio's display
-    // speed - turns on speed signal measurement for 10 seconds
-    // distance [value] - sets distance for speed signal measurement analysis
-}
+// Time constants
+const unsigned long timeout = 5000; // miliseconds
+const unsigned long syncRate = 750; // miliseconds
+const unsigned long refreshRate = 2 * syncRate;
+
+// Variables used for automatic volume adjustment
+int addedVolume = 0;
+const int addedVolumeLimit = 8;     // volume can be increased up to 8 points
+const int activationThreshold = 50; // km/h
+const int changeThreshold = 10;     // km/h
 
 // Handler for command that isn't matched
 void Unrecognized(const char *command)
@@ -42,25 +45,7 @@ void Unrecognized(const char *command)
     Serial.println("Command not recognized.");
 }
 
-void ShowRadioCommands()
-{
-    // List of available radio commands:
-    // 1: mute button - short - mute/unmute speakers
-    // 2: mute button - long - mute/unmute speakers
-    // 3: volume up - short - increases volume by 1
-    // 4: volume up - long - increases volume by 2
-    // 5: volume down - short - decreases volume by 1
-    // 6: volume down - long - decreases volume by 2
-    // 7: source button - short - toggle input source
-    // 8: source button - long - activate voice control
-    // 9: track left - short - track backward
-    // 10: track left - long - toggle equalizer
-    // 11: track right - short - track forward
-    // 12: track right - long - unused
-    // 13: roll down - folder backward
-    // 14: roll up - folder forward
-}
-
+// Sends to JVC unit command read from serial
 void SendToCarRadio()
 {
     int aNumber;
@@ -80,80 +65,114 @@ void SendToCarRadio()
 
 // This method interpretes command to be sent to car radio unit
 // Returns true if command has been successfully interpreted (i.e. commandIndex was in range from 1 to 14), false otherwise
-//
 bool InterpreteRadioCommand(int commandIndex)
 {
     bool result = true;
+    if (DEBUG_MODE)
+    {
+        switch (commandIndex)
+        {
+        case 1: // 1: mute button - short - mute/unmute speakers
+            Serial.println("Sending MUTE");
+            break;
+        case 2: // 2: mute button - long - mute/unmute speakers
+            Serial.println("Sending MUTE");
+            break;
+        case 3: // 3: volume up - short - increases volume by 1
+            Serial.println("Sending VOL_UP");
+            break;
+        case 4: // 4: volume up - long - increases volume by 2
+            Serial.println("Sending VOL_UP twice");
+            break;
+        case 5: // 5: volume down - short - decreases volume by 1
+            Serial.println("Sending VOL_DOWN");
+            break;
+        case 6: // 6: volume down - long - decreases volume by 2
+            Serial.println("Sending VOL_DOWN twice");
+            break;
+        case 7: // 7: source button - short - toggle input source
+            Serial.println("Sending SOURCE");
+            break;
+        case 8: // 8: source button - long - activate voice control
+            Serial.println("Sending VOICE_CONTROL");
+            break;
+        case 9: // 9: track left - short - track backward
+            Serial.println("Sending TRACK_BACK");
+            break;
+        case 10: // 10: track left - long - toggle equalizer
+            Serial.println("Sending EQUALIZER");
+            break;
+        case 11: // 11: track right - short - track forward
+            Serial.println("Sending TRACK_FORW");
+            break;
+        case 12: // 12: track right - long - unused
+            Serial.println("Index not in use");
+            break;
+        case 13: // 13: roll down - folder backward
+            Serial.println("Sending FOLDER_FORW");
+            break;
+        case 14: // 14: roll up - folder forward
+            Serial.println("Sending FOLDER_BACK");
+            break;
+        }
+    }
+
     switch (commandIndex)
     {
-    case 1:
-        Serial.println("Sending MUTE");
+    case 1: // 1: mute button - short - mute/unmute speakers
         carRadio.Action(MUTE);
         clio.PrintDisplay("MUTE");
         break;
-    case 2:
-        Serial.println("Sending MUTE");
+    case 2: // 2: mute button - long - mute/unmute speakers
         carRadio.Action(MUTE);
         clio.PrintDisplay("MUTE");
         break;
-    case 3:
-        Serial.println("Sending VOL_UP");
+    case 3: // 3: volume up - short - increases volume by 1
         carRadio.Action(VOL_UP);
         clio.PrintDisplay("VOL+");
         break;
-    case 4:
-        Serial.println("Sending VOL_UP twice");
+    case 4: // 4: volume up - long - increases volume by 2
         carRadio.Action(VOL_UP);
         carRadio.Action(VOL_UP);
         clio.PrintDisplay("VOL++");
         break;
-    case 5:
-        Serial.println("Sending VOL_DOWN");
+    case 5: // 5: volume down - short - decreases volume by 1
         carRadio.Action(VOL_DOWN);
         clio.PrintDisplay("VOL-");
         break;
-    case 6:
-        Serial.println("Sending VOL_DOWN twice");
+    case 6: // 6: volume down - long - decreases volume by 2
         carRadio.Action(VOL_DOWN);
         carRadio.Action(VOL_DOWN);
         clio.PrintDisplay("VOL--");
         break;
-    case 7:
-        Serial.println("Sending SOURCE");
+    case 7: // 7: source button - short - toggle input source
         carRadio.Action(SOURCE);
         clio.PrintDisplay("SOURCE");
         break;
-    case 8:
-        Serial.println("Sending VOICE_CONTROL");
+    case 8: // 8: source button - long - activate voice control
         carRadio.Action(VOICE_CONTROL);
         clio.PrintDisplay("VOICE");
         break;
-    case 9:
-        Serial.println("Sending TRACK_BACK");
+    case 9: // 9: track left - short - track backward
         carRadio.Action(TRACK_BACK);
         clio.PrintDisplay("TR BACK");
         break;
-    case 10:
-        Serial.println("Sending EQUALIZER");
+    case 10: // 10: track left - long - toggle equalizer
         carRadio.Action(EQUALIZER);
         clio.PrintDisplay("EQ");
         break;
-    case 11:
-        Serial.println("Sending TRACK_FORW");
+    case 11: // 11: track right - short - track forward
         carRadio.Action(TRACK_FORW);
         clio.PrintDisplay("TR FORW");
         break;
-    case 12:
-        Serial.println("Index not in use");
+    case 12: // 12: track right - long - unused
         clio.PrintDisplay("NONE");
         break;
-    case 13:
-        Serial.println("Sending FOLDER_FORW");
+    case 13: // 13: roll down - folder backward
         carRadio.Action(FOLDER_FORW);
         clio.PrintDisplay("FOL FORW");
         break;
-    case 14:
-        Serial.println("Sending FOLDER_BACK");
+    case 14: // 14: roll up - folder forward
         carRadio.Action(FOLDER_BACK);
         clio.PrintDisplay("FOL BACK");
         break;
@@ -166,25 +185,38 @@ bool InterpreteRadioCommand(int commandIndex)
 
 void SetupCommandLine()
 {
-    commandLine.addCommand("radio", SendToCarRadio);
-    commandLine.addCommand("display", PrintToDisplay);
-    commandLine.addCommand("speed", SpeedSignalAnalysis);
-    commandLine.addCommand("distance", SetDistance);
-    commandLine.addCommand("disp_on", DisplayOn);
-    commandLine.addCommand("disp_off", DisplayOff);
-    commandLine.setDefaultHandler(Unrecognized);
+    if (DEBUG_MODE)
+    {
+        // radio [commandIndex] - sends command with specified index to radio device
+        commandLine.addCommand("radio", SendToCarRadio);
+        // display [text] - writes text to Clio's display
+        commandLine.addCommand("display", PrintToDisplay);
+        // speed - turns on speed signal measurement for 10 seconds
+        commandLine.addCommand("speed", SpeedSignalAnalysis);
+        // distance [value] - sets distance for speed signal measurement analysis
+        commandLine.addCommand("distance", SetDistance);
+        // disp_on - turns Clio's display on
+        commandLine.addCommand("disp_on", DisplayOn);
+        // disp_on - turns Clio's display off
+        commandLine.addCommand("disp_off", DisplayOff);
+        // Handler for command that isn't matched
+        commandLine.setDefaultHandler(Unrecognized);
+    }
 }
 
+// Turns Clio's display on
 void DisplayOn()
 {
     clio.DisplayOn();
 }
 
+// Turns Clio's display off
 void DisplayOff()
 {
     clio.DisplayOff();
 }
 
+// Writes text to Clio's display
 void PrintToDisplay()
 {
     char *arg;
@@ -194,6 +226,7 @@ void PrintToDisplay()
     clio.PrintDisplay(str);
 }
 
+// Sets distance for speed signal measurement analysis
 void SetDistance()
 {
     char *arg;
@@ -207,6 +240,7 @@ void SetDistance()
     }
 }
 
+// turns on speed signal measurement for 10 seconds
 void SpeedSignalAnalysis()
 {
     currentTime = millis();
@@ -224,6 +258,7 @@ void SpeedSignalAnalysis()
     } while (newTime - currentTime < 10000UL);
 }
 
+// Reads car speed from the sensor
 double GetSpeed()
 {
     pulseDuration = pulseIn(signalPin, LOW);
@@ -232,27 +267,43 @@ double GetSpeed()
 
 void AdjustVolume()
 {
-    //acceleration from below level
-    if (speed > addedVolume * 10 + 50 && addedVolume <= 7)
+    if (speed > activationThreshold)
     {
-        carRadio.Action(VOL_UP);
-        addedVolume++;
-    }
+        // calculate expected value of added volume
+        int expectedValue = floor((speed - activationThreshold) / changeThreshold);
+        // adjust volume if added volume level differs from expected
+        if (addedVolume < expectedValue && addedVolume < addedVolumeLimit)
+        {
+            carRadio.Action(VOL_UP);
+            addedVolume++;
 
-    //deceleration from above level
-    if (speed < (addedVolume - 1) * 10 + 50 && addedVolume >= 1)
-    {
-        carRadio.Action(VOL_DOWN);
-        addedVolume--;
+            if (DEBUG_MODE)
+            {
+                Serial.println("Auto volume up");
+            }
+        }
+        if (addedVolume > expectedValue)
+        {
+            carRadio.Action(VOL_DOWN);
+            addedVolume--;
+
+            if (DEBUG_MODE)
+            {
+                Serial.println("Auto volume down");
+            }
+        }
     }
 }
 
 void setup()
 {
     // Await serial monitor open
-    while (!Serial)
-        ;
-    Serial.begin(9600);
+    if (DEBUG_MODE)
+    {
+        while (!Serial)
+            ;
+        Serial.begin(9600);
+    }
 
     // Prepare to read speed signal info on pin 8
     pinMode(signalPin, INPUT_PULLUP);
@@ -261,7 +312,7 @@ void setup()
     carRadio.SetupRemote(4);
 
     // Initialize display
-    clio.SetupDisplay();
+    clio.DisplayOn();
 
     // Prepare command line
     SetupCommandLine();
@@ -271,12 +322,18 @@ void setup()
     currentTime = syncTime0;
     refreshTime = syncTime0;
 
-    Serial.println("Ready");
+    if (DEBUG_MODE)
+    {
+        Serial.println("Ready");
+    }
 }
 
 void loop()
 {
-    commandLine.readSerial(); // We don't do much, just process serial commands
+    if (DEBUG_MODE)
+    {
+        commandLine.readSerial(); // We don't do much, just process serial commands
+    }
 
     // Check if a command has been sent from remote or serial
     if (InterpreteRadioCommand(clio.ReceiveFromRemote()))
@@ -301,14 +358,26 @@ void loop()
     if (newTime - currentTime > timeout && newTime - refreshTime > refreshRate)
     {
         // Prepare string
-        String speed("SPD ");
-        speed += GetSpeed();
+        String spd("SPD ");
+        speed = GetSpeed();
+        spd += speed;
         // Display message
-        clio.PrintDisplay(speed);
+        clio.PrintDisplay(spd);
         // Store refresh time
         refreshTime = millis();
+
+        if (DEBUG_MODE)
+        {
+            Serial.println(spd);
+        }
     }
 
     // Automatically adjust volume level basing on speed
     AdjustVolume();
+
+    // Display CAN packets in serial monitor
+    if (DEBUG_MODE)
+    {
+        clio.ShowPacketData();
+    }
 }
