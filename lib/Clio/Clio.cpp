@@ -15,6 +15,8 @@
 #include "Arduino.h"
 #include "string.h"
 
+#define DEBUG true
+
 Clio::Clio(byte csPin, byte interruptPin, byte displaySwitchPin)
 {
     _interruptPin = interruptPin;
@@ -25,14 +27,14 @@ Clio::Clio(byte csPin, byte interruptPin, byte displaySwitchPin)
     // start CAN
     if (canBus.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ))
     {
-        if (DEBUG_MODE)
+        if (DEBUG)
         {
             Serial.println("CAN init OK");
         }
     }
     else
     {
-        if (DEBUG_MODE)
+        if (DEBUG)
         {
             Serial.println("CAN init failed");
         }
@@ -82,7 +84,7 @@ void Clio::PrintDisplay(String s)
         s = s.substring(0, 7);
     }
 
-    if (DEBUG_MODE)
+    if (DEBUG)
     {
         Serial.print("Printing \"");
         Serial.print(s);
@@ -144,7 +146,7 @@ void Clio::do_send_to(word id, byte *data, byte datasz, byte filler)
         if (!digitalRead(_interruptPin))
         {
             canBus.readMsgBuf(&canFrameId, &canMsgLength, canReceivedMsg); // read data
-            if (DEBUG_MODE)
+            if (DEBUG)
             {
                 isNewMessageAvailable = true;
             }
@@ -159,7 +161,7 @@ int Clio::ReceiveFromRemote()
     {
         canBus.readMsgBuf(&canFrameId, &canMsgLength, canReceivedMsg); // read data
 
-        if (DEBUG_MODE)
+        if (DEBUG)
         {
             isNewMessageAvailable = true;
         }
@@ -167,7 +169,7 @@ int Clio::ReceiveFromRemote()
         // KEEPALIVE message received confirmation
         if (canFrameId == 0x3CF && memcmp(canReceivedMsg, KEEPALIVE_ACK, 8))
         {
-            if (DEBUG_MODE)
+            if (DEBUG)
             {
                 Serial.println("KEEPALIVE_ACK received");
             }
@@ -177,7 +179,7 @@ int Clio::ReceiveFromRemote()
         if (canFrameId == 0x1C1 && memcmp(canReceivedMsg, RESPONSE_MESSAGE, 8))
         {
             SendMessage(0x5C1, RESPONSE_MESSAGE);
-            if (DEBUG_MODE)
+            if (DEBUG)
             {
                 Serial.println("Ping - pong messages exchanged");
             }

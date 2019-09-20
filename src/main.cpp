@@ -4,7 +4,7 @@
 #include <Clio.h>
 #include <mcp_can.h>
 
-#define DEBUG_MODE true
+#define DEBUG true
 
 // Pinout for Arduino
 const byte csPin = 9;
@@ -18,7 +18,7 @@ SerialCommand commandLine;
 
 // Variables used for car's speed calculation
 int pulseDuration;
-double speed = 0;
+int speed = 0;
 double distance = 105; // milimeters
 
 // Variables used to handle time-based events
@@ -68,7 +68,7 @@ void SendToCarRadio()
 bool InterpreteRadioCommand(int commandIndex)
 {
     bool result = true;
-    if (DEBUG_MODE)
+    if (DEBUG)
     {
         switch (commandIndex)
         {
@@ -185,7 +185,7 @@ bool InterpreteRadioCommand(int commandIndex)
 
 void SetupCommandLine()
 {
-    if (DEBUG_MODE)
+    if (DEBUG)
     {
         // radio [commandIndex] - sends command with specified index to radio device
         commandLine.addCommand("radio", SendToCarRadio);
@@ -259,10 +259,11 @@ void SpeedSignalAnalysis()
 }
 
 // Reads car speed from the sensor
-double GetSpeed()
+int GetSpeed()
 {
     pulseDuration = pulseIn(signalPin, LOW);
-    return (distance /*mm*/ * 3600) / pulseDuration /*μs*/; // result in km/h
+    speed = (distance /*mm*/ * 3600) / pulseDuration /*μs*/; // result in km/h 
+    return round(speed) < 0 ? 0 : round(speed);
 }
 
 void AdjustVolume()
@@ -277,7 +278,7 @@ void AdjustVolume()
             carRadio.Action(VOL_UP);
             addedVolume++;
 
-            if (DEBUG_MODE)
+            if (DEBUG)
             {
                 Serial.println("Auto volume up");
             }
@@ -287,7 +288,7 @@ void AdjustVolume()
             carRadio.Action(VOL_DOWN);
             addedVolume--;
 
-            if (DEBUG_MODE)
+            if (DEBUG)
             {
                 Serial.println("Auto volume down");
             }
@@ -298,7 +299,7 @@ void AdjustVolume()
 void setup()
 {
     // Await serial monitor open
-    if (DEBUG_MODE)
+    if (DEBUG)
     {
         while (!Serial)
             ;
@@ -322,7 +323,7 @@ void setup()
     currentTime = syncTime0;
     refreshTime = syncTime0;
 
-    if (DEBUG_MODE)
+    if (DEBUG)
     {
         Serial.println("Ready");
     }
@@ -330,7 +331,7 @@ void setup()
 
 void loop()
 {
-    if (DEBUG_MODE)
+    if (DEBUG)
     {
         commandLine.readSerial(); // We don't do much, just process serial commands
     }
@@ -355,28 +356,24 @@ void loop()
 
     // Check if timeout from remote and refresh time rate have passed, if yes, display speed
     newTime = millis();
+    speed = GetSpeed();
+    Serial.println(speed);
     if (newTime - currentTime > timeout && newTime - refreshTime > refreshRate)
     {
         // Prepare string
         String spd("SPD ");
-        speed = GetSpeed();
         spd += speed;
         // Display message
         clio.PrintDisplay(spd);
         // Store refresh time
         refreshTime = millis();
-
-        if (DEBUG_MODE)
-        {
-            Serial.println(spd);
-        }
     }
 
     // Automatically adjust volume level basing on speed
     AdjustVolume();
 
     // Display CAN packets in serial monitor
-    if (DEBUG_MODE)
+    if (DEBUG)
     {
         clio.ShowPacketData();
     }
