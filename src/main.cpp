@@ -262,7 +262,7 @@ void SpeedSignalAnalysis()
 int GetSpeed()
 {
     pulseDuration = pulseIn(signalPin, LOW);
-    speed = (distance /*mm*/ * 3600) / pulseDuration /*μs*/; // result in km/h 
+    speed = (distance /*mm*/ * 3600) / pulseDuration /*μs*/; // result in km/h
     return round(speed) < 0 ? 0 : round(speed);
 }
 
@@ -356,12 +356,11 @@ void loop()
 
     // Check if timeout from remote and refresh time rate have passed, if yes, display speed
     newTime = millis();
-    speed = GetSpeed();
-    Serial.println(speed);
     if (newTime - currentTime > timeout && newTime - refreshTime > refreshRate)
     {
         // Prepare string
         String spd("SPD ");
+        speed = GetSpeed();
         spd += speed;
         // Display message
         clio.PrintDisplay(spd);
