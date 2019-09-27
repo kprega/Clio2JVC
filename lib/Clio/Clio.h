@@ -32,7 +32,7 @@ private:
     MCP_CAN canBus = MCP_CAN(_csPin);
     byte canBusSendResult;
 	void SetupDisplay();
-    void SendMessage(int frame, unsigned char *message);
+    void SendMessage(int frame, const unsigned char *message);
     void send_to_display(word id, byte *data, byte datasz);
     void do_send_to(word id, byte * data, byte datasz, byte filler);
     long unsigned int canFrameId;

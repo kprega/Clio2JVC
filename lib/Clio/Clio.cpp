@@ -60,9 +60,9 @@ void Clio::SetupDisplay()
     delay(50 + 10);
 }
 
-void Clio::SendMessage(int frame, unsigned char *message)
+void Clio::SendMessage(int frame, const unsigned char *message)
 {
-    canBusSendResult = canBus.sendMsgBuf(frame, 0, 8, message);
+    canBusSendResult = canBus.sendMsgBuf(frame, 0, 8, (byte*)message);
 }
 
 void Clio::Sync()
@@ -192,62 +192,69 @@ int Clio::ReceiveFromRemote()
             SendMessage(0x4A9, REMOTE_ACK);
 
             // Find out what button was pressed and for how long
-            if (memcmp(canReceivedMsg, REMOTE_PAUSE, 8) == 0)
+            int i = 0;
+            int arraySize = 14;
+            while (i < arraySize && memcmp(canReceivedMsg, REMOTE_COMMANDS[i], 8) != 0)
             {
-                result = 1;
+                i++;
             }
-            if (memcmp(canReceivedMsg, REMOTE_PAUSE_LONG, 8) == 0)
-            {
-                result = 2;
-            }
-            if (memcmp(canReceivedMsg, REMOTE_VOL_UP, 8) == 0)
-            {
-                result = 3;
-            }
-            if (memcmp(canReceivedMsg, REMOTE_VOL_UP_LONG, 8) == 0)
-            {
-                result = 4;
-            }
-            if (memcmp(canReceivedMsg, REMOTE_VOL_DOWN, 8) == 0)
-            {
-                result = 5;
-            }
-            if (memcmp(canReceivedMsg, REMOTE_VOL_DOWN_LONG, 8) == 0)
-            {
-                result = 6;
-            }
-            if (memcmp(canReceivedMsg, REMOTE_SELECT, 8) == 0)
-            {
-                result = 7;
-            }
-            if (memcmp(canReceivedMsg, REMOTE_SELECT_LONG, 8) == 0)
-            {
-                result = 8;
-            }
-            if (memcmp(canReceivedMsg, REMOTE_SOURCE_LEFT, 8) == 0)
-            {
-                result = 9;
-            }
-            if (memcmp(canReceivedMsg, REMOTE_SOURCE_LEFT_LONG, 8) == 0)
-            {
-                result = 10;
-            }
-            if (memcmp(canReceivedMsg, REMOTE_SOURCE_RIGHT, 8) == 0)
-            {
-                result = 11;
-            }
-            if (memcmp(canReceivedMsg, REMOTE_SOURCE_RIGHT_LONG, 8) == 0)
-            {
-                result = 12;
-            }
-            if (memcmp(canReceivedMsg, REMOTE_ROLL_DOWN, 8) == 0)
-            {
-                result = 13;
-            }
-            if (memcmp(canReceivedMsg, REMOTE_ROLL_UP, 8) == 0)
-            {
-                result = 14;
-            }
+            result = i < arraySize ? i + 1 : 0;
+            // if (memcmp(canReceivedMsg, REMOTE_PAUSE, 8) == 0)
+            // {
+            //     result = 1;
+            // }
+            // if (memcmp(canReceivedMsg, REMOTE_PAUSE_LONG, 8) == 0)
+            // {
+            //     result = 2;
+            // }
+            // if (memcmp(canReceivedMsg, REMOTE_VOL_UP, 8) == 0)
+            // {
+            //     result = 3;
+            // }
+            // if (memcmp(canReceivedMsg, REMOTE_VOL_UP_LONG, 8) == 0)
+            // {
+            //     result = 4;
+            // }
+            // if (memcmp(canReceivedMsg, REMOTE_VOL_DOWN, 8) == 0)
+            // {
+            //     result = 5;
+            // }
+            // if (memcmp(canReceivedMsg, REMOTE_VOL_DOWN_LONG, 8) == 0)
+            // {
+            //     result = 6;
+            // }
+            // if (memcmp(canReceivedMsg, REMOTE_SELECT, 8) == 0)
+            // {
+            //     result = 7;
+            // }
+            // if (memcmp(canReceivedMsg, REMOTE_SELECT_LONG, 8) == 0)
+            // {
+            //     result = 8;
+            // }
+            // if (memcmp(canReceivedMsg, REMOTE_SOURCE_LEFT, 8) == 0)
+            // {
+            //     result = 9;
+            // }
+            // if (memcmp(canReceivedMsg, REMOTE_SOURCE_LEFT_LONG, 8) == 0)
+            // {
+            //     result = 10;
+            // }
+            // if (memcmp(canReceivedMsg, REMOTE_SOURCE_RIGHT, 8) == 0)
+            // {
+            //     result = 11;
+            // }
+            // if (memcmp(canReceivedMsg, REMOTE_SOURCE_RIGHT_LONG, 8) == 0)
+            // {
+            //     result = 12;
+            // }
+            // if (memcmp(canReceivedMsg, REMOTE_ROLL_DOWN, 8) == 0)
+            // {
+            //     result = 13;
+            // }
+            // if (memcmp(canReceivedMsg, REMOTE_ROLL_UP, 8) == 0)
+            // {
+            //     result = 14;
+            // }
         }
     }
     return result;

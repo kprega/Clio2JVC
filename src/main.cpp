@@ -8,7 +8,7 @@
 
 // Pinout for Arduino
 const byte csPin = 9;
-const byte interruptPin = 2;
+const byte interruptPin = 3;
 const byte displaySwitchPin = 4;
 const byte signalPin = 8;
 
@@ -222,7 +222,6 @@ void PrintToDisplay()
     char *arg;
     arg = commandLine.next();
     String str(arg);
-    // str += arg;
     clio.PrintDisplay(str);
 }
 
@@ -312,6 +311,9 @@ void setup()
     // Set up car radio to work with pin 5
     carRadio.SetupRemote(5);
 
+    // Display doesn't turn on immediately, wait a second to ensure power is on
+    delay(1000);
+
     // Initialize display
     clio.DisplayOn();
 
@@ -374,7 +376,6 @@ void loop()
     // Display CAN packets in serial monitor
     if (DEBUG)
     {
-        // temporarily turned off due to serial monitor flooding, has to be fixed
-        //clio.ShowPacketData();
+        clio.ShowPacketData();
     }
 }
