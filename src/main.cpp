@@ -309,8 +309,8 @@ void setup()
     // Prepare to read speed signal info on pin 8
     pinMode(signalPin, INPUT_PULLUP);
 
-    // Set up car radio to work with pin 4
-    carRadio.SetupRemote(4);
+    // Set up car radio to work with pin 5
+    carRadio.SetupRemote(5);
 
     // Initialize display
     clio.DisplayOn();
@@ -374,6 +374,7 @@ void loop()
     // Display CAN packets in serial monitor
     if (DEBUG)
     {
-        clio.ShowPacketData();
+        // temporarily turned off due to serial monitor flooding, has to be fixed
+        //clio.ShowPacketData();
     }
 }
