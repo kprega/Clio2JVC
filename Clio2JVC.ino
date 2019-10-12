@@ -1,4 +1,4 @@
-#include <SPI.h>
+#include "SPI.h"
 #include "mcp_can.h" // https://github.com/coryjfowler/MCP_CAN_lib
 #include "mcp_can_dfs.h"
 #include "SimpleTimer.h"
@@ -282,8 +282,9 @@ void loop()
             break;
         }
         refreshTime = millis();
+        
+        AdjustVolume();
     }
-    AdjustVolume();
 }
 
 void CLIO_CAN_startSync()
@@ -441,7 +442,7 @@ void CalculateVoltage()
 
 void CalculateDistance()
 {
-    dist += (millis() - refreshTime) * velocity * 3.6;
+    dist += (millis() - refreshTime) * velocity * (1 / 3600000) ;
 }
 
 void DisplaySpeed()
@@ -504,7 +505,7 @@ void ToggleMode()
 {
     if ((int)displayMode == 2)
     {
-        displayMode = 0;
+        displayMode = (DisplayModeEnum)0;
     }
     else
     {
