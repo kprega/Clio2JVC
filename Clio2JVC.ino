@@ -476,7 +476,17 @@ void DisplayDistance()
 {
     String msg("DST ");
     String s(dist);
-    s = s.substring(0, 4);
+    // if distance is greater than 100km but below 1000km, then trim trailing decimal point and add a space to msg
+    if (dist > 100 && dist < 1000)
+    {
+        msg + = " ";
+        s.substring(0,3);
+    }
+    else
+    {
+        s = s.substring(0, 4);
+    }
+    
     msg += s;
     PrintDisplay(msg);
 }
