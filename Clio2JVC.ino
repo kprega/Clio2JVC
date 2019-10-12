@@ -479,7 +479,7 @@ void DisplayDistance()
     // if distance is greater than 100km but below 1000km, then trim trailing decimal point and add a space to msg
     if (dist > 100 && dist < 1000)
     {
-        msg + = " ";
+        msg += " ";
         s.substring(0,3);
     }
     else
