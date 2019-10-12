@@ -1,0 +1,33 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/Users/Karol/Documents/Arduino/libraries/**",
+                "C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino",
+                "C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/EEPROM/src",
+                "C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/HID/src",
+                "C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SoftwareSerial/src",
+                "C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src",
+                "C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src",
+                "C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "F_CPU=16000000L",
+                "ARDUINO=10810",
+                "ARDUINO_AVR_LEONARDO",
+                "ARDUINO_ARCH_AVR"
+            ],
+            "windowsSdkVersion": "10.0.17763.0",
+            "compilerPath": "C:/Program Files (x86)/Arduino/hardware/tools/avr/bin/avr-gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}
