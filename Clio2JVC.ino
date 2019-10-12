@@ -33,6 +33,9 @@ float volIn = 0.0;
 float volOut = 0.0;
 int pinReading = 0;
 
+// Variables for trip distance calculation
+double dist = 0;
+
 // Pinout for Arduino
 const int radioPin = 5;
 const int signalPin = 8;
@@ -41,7 +44,8 @@ const int csPin = 9;
 const int voltagePin = A3;
 
 // Display mode
-int displayMode = 0;
+enum DisplayModeEnum {spd, vlt, dst};
+DisplayModeEnum displayMode = spd;
 
 // Variables for CAN communication
 MCP_CAN CAN(csPin); // Set CS pin
@@ -260,15 +264,22 @@ void loop()
     {
         CalculateVelocity();
         CalculateVoltage();
+        CalculateDistance();
 
         // Handle display mode here
-        if (displayMode == 0)
+        switch (displayMode)
         {
+        case spd:
             DisplaySpeed();
-        }
-        else
-        {
+            break;
+        case vlt:
             DisplayVoltage();
+            break;
+        case dst:
+            DisplayDistance();
+            break;
+        default:
+            break;
         }
         refreshTime = millis();
     }
@@ -428,6 +439,11 @@ void CalculateVoltage()
     }
 }
 
+void CalculateDistance()
+{
+    dist += (millis() - refreshTime) * velocity * 3.6;
+}
+
 void DisplaySpeed()
 {
     String msg("SPD  ");
@@ -455,6 +471,15 @@ void DisplayVoltage()
     PrintDisplay(msg);
 }
 
+void DisplayDistance()
+{
+    String msg("DST ");
+    String s(dist);
+    s = s.substring(0, 4);
+    msg += s;
+    PrintDisplay(msg);
+}
+
 void AdjustVolume()
 {
     if (velocity > activationThreshold)
@@ -477,12 +502,12 @@ void AdjustVolume()
 
 void ToggleMode()
 {
-    if (displayMode == 1)
+    if ((int)displayMode == 2)
     {
         displayMode = 0;
     }
     else
     {
-        displayMode = 1;
+        displayMode = (DisplayModeEnum)((int)displayMode + 1);
     }
 }
