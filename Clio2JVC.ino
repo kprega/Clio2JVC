@@ -442,7 +442,7 @@ void CalculateVoltage()
 
 void CalculateDistance()
 {
-    dist += (millis() - refreshTime) * velocity * (1 / 3600000) ;
+    dist += (double)(millis() - refreshTime) * velocity / 3600000.0 ;
 }
 
 void DisplaySpeed()
