@@ -6,7 +6,7 @@
         {
             "label": "Clio2JVC-build",
             "type": "shell",
-            "command": "C:/Arduino-CLI/arduino-cli.exe compile -v -b arduino:avr:leonardo Clio2JVC.ino",
+            "command": "C:/Arduino-CLI/arduino-cli.exe compile -v -b arduino:avr:leonardo",
             "group": "build",
             "isBackground": false,
             "presentation": {
@@ -21,7 +21,7 @@
         {
             "label": "Clio2JVC-upload",
             "type": "shell",
-            "command": "C:/Arduino-CLI/arduino-cli.exe upload -p COM18 -v --fqbn arduino:avr:leonardo Clio2JVC.ino",
+            "command": "C:/Arduino-CLI/arduino-cli.exe upload -p COM3 -v --fqbn arduino:avr:leonardo ",
             "group": "test",
             "isBackground": false,
             "presentation": {

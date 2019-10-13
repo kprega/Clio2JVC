@@ -1,4 +1,5 @@
 {
     "board": "arduino:avr:leonardo",
-    "programmer": "AVRISP mkII"
+    "programmer": "AVRISP mkII",
+    "port": "COM3"
 }
