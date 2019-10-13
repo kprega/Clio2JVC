@@ -108,8 +108,8 @@ void setup()
     delay(1);
     CLIO_CAN_syncDisp(); // triggers 1c1 and 0a9 on the display side: response 5C1 and 4A9
     delay(10);
-    CAN.sendMsgBuf(0x5C1, 0, 8, CLIO_CAN_5C1_MESSAGE);
-    CAN.sendMsgBuf(0x4A9, 0, 8, CLIO_CAN_REMOTE_ACK);
+    CAN.sendMsgBuf(0x5C1, 0, 8, (byte*)CLIO_CAN_5C1_MESSAGE);
+    CAN.sendMsgBuf(0x4A9, 0, 8, (byte*)CLIO_CAN_REMOTE_ACK);
     CLIO_CAN_initDisplay();
     delay(1);
     CLIO_CAN_registerDisplay();
@@ -136,12 +136,12 @@ void loop()
         else if (CAN_ID == 0x1C1)
         {
             // Ping - pong
-            CAN.sendMsgBuf(0x5C1, 0, 8, CLIO_CAN_5C1_MESSAGE);
+            CAN.sendMsgBuf(0x5C1, 0, 8, (byte*)CLIO_CAN_5C1_MESSAGE);
         }
         // Receiving from the steering wheel remote
         else if (CAN_ID == 0x0A9)
         {
-            CAN_SEND_RESULT = CAN.sendMsgBuf(0x4A9, 0, 8, CLIO_CAN_REMOTE_ACK);
+            CAN_SEND_RESULT = CAN.sendMsgBuf(0x4A9, 0, 8, (byte*)CLIO_CAN_REMOTE_ACK);
             //if (CAN_SEND_RESULT == CAN_OK)
             //{
             //    Serial.println("CLIO_CAN_REMOTE_ACK Message Sent Successfully!");
@@ -299,7 +299,7 @@ void CLIO_CAN_startSync()
 
 void CLIO_CAN_syncOK()
 {
-    CAN.sendMsgBuf(0x3DF, 0, 8, CLIO_CAN_KEEPALIVE);
+    CAN.sendMsgBuf(0x3DF, 0, 8, (byte*)CLIO_CAN_KEEPALIVE);
     //if (CAN_SEND_RESULT == CAN_OK)
     //    Serial.println("syncOK Message Sent Successfully!");
     //else
