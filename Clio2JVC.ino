@@ -43,22 +43,21 @@ const int interruptPin = 3;
 const int csPin = 9;
 const int voltagePin = A3;
 
-// Display mode
-enum DisplayModeEnum {spd, vlt, dst};
-DisplayModeEnum displayMode = spd;
+// Display modes
+enum DisplayModeEnum {SpeedMode, VoltageMode, DistanceMode};
+DisplayModeEnum displayMode = SpeedMode;
 
 // Variables for CAN communication
-MCP_CAN CAN(csPin); // Set CS pin
-unsigned char CAN_MESSAGE_LENGTH = 0;
-unsigned char CAN_RECEIVED_MESSAGE[8];
-long unsigned int CAN_ID;
-byte CAN_SEND_RESULT;
+MCP_CAN canBus(csPin); // Set CS pin
+unsigned char canMsgLength = 0;
+unsigned char canReceivedMsg[8];
+long unsigned int canFrameID;
+byte canSendResult;
 
-const unsigned char CLIO_CAN_KEEPALIVE[8] = {0x79, 0x00, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
+const unsigned char CLIO_CAN_KEEPALIVE[8]     = {0x79, 0x00, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
 const unsigned char CLIO_CAN_KEEPALIVE_ACK[8] = {0x69, 0x00, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2};
-const unsigned char CLIO_CAN_5C1_MESSAGE[8] = {0x74, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
-const unsigned char CLIO_CAN_REMOTE_ACK[8] = {0x74, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
-//const unsigned char CLIO_CAN_DISPLAY_MSG_OK[8] = {0x30, 0x01, 0x00, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2};
+const unsigned char CLIO_CAN_5C1_MESSAGE[8]   = {0x74, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
+const unsigned char CLIO_CAN_REMOTE_ACK[8]    = {0x74, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
 
 const unsigned char RemoteMessages[14][8] =
     {
@@ -84,12 +83,12 @@ void setup()
     delay(2000);
 
     // CAN 11 bits 500kbauds
-    CAN.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ);
+    canBus.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ);
     //    if (CAN.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) // Baud rates defined in mcp_can_dfs.h
     //        Serial.println("CAN Init OK.");
     //    else
     //        Serial.println("CAN Init Failed.");
-    CAN.setMode(MCP_NORMAL);
+    canBus.setMode(MCP_NORMAL);
     pinMode(interruptPin, INPUT); // start interrupt
 
     // Set up car radio to work with pin 5
@@ -108,8 +107,8 @@ void setup()
     delay(1);
     CLIO_CAN_syncDisp(); // triggers 1c1 and 0a9 on the display side: response 5C1 and 4A9
     delay(10);
-    CAN.sendMsgBuf(0x5C1, 0, 8, (byte*)CLIO_CAN_5C1_MESSAGE);
-    CAN.sendMsgBuf(0x4A9, 0, 8, (byte*)CLIO_CAN_REMOTE_ACK);
+    canBus.sendMsgBuf(0x5C1, 0, 8, (byte*)CLIO_CAN_5C1_MESSAGE);
+    canBus.sendMsgBuf(0x4A9, 0, 8, (byte*)CLIO_CAN_REMOTE_ACK);
     CLIO_CAN_initDisplay();
     delay(1);
     CLIO_CAN_registerDisplay();
@@ -124,25 +123,25 @@ void loop()
     // receive CAN
     if (!digitalRead(interruptPin))
     {
-        CAN.readMsgBuf(&CAN_ID, &CAN_MESSAGE_LENGTH, CAN_RECEIVED_MESSAGE); // read data,  CAN_MESSAGE_LENGTH: data length, buf: data buf
-        if (CAN_ID == 0x3CF && memcmp(CAN_RECEIVED_MESSAGE, CLIO_CAN_KEEPALIVE_ACK, 8) == 0)
+        canBus.readMsgBuf(&canFrameID, &canMsgLength, canReceivedMsg); // read data,  canMsgLength: data length, buf: data buf
+        if (canFrameID == 0x3CF && memcmp(canReceivedMsg, CLIO_CAN_KEEPALIVE_ACK, 8) == 0)
         {
             // Keep alive reception confirmation received
         }
-        else if (CAN_ID == 0x521)
+        else if (canFrameID == 0x521)
         {
             // Display confirms reception of new content
         }
-        else if (CAN_ID == 0x1C1)
+        else if (canFrameID == 0x1C1)
         {
             // Ping - pong
-            CAN.sendMsgBuf(0x5C1, 0, 8, (byte*)CLIO_CAN_5C1_MESSAGE);
+            canBus.sendMsgBuf(0x5C1, 0, 8, (byte*)CLIO_CAN_5C1_MESSAGE);
         }
         // Receiving from the steering wheel remote
-        else if (CAN_ID == 0x0A9)
+        else if (canFrameID == 0x0A9)
         {
-            CAN_SEND_RESULT = CAN.sendMsgBuf(0x4A9, 0, 8, (byte*)CLIO_CAN_REMOTE_ACK);
-            //if (CAN_SEND_RESULT == CAN_OK)
+            canSendResult = canBus.sendMsgBuf(0x4A9, 0, 8, (byte*)CLIO_CAN_REMOTE_ACK);
+            //if (canSendResult == CAN_OK)
             //{
             //    Serial.println("CLIO_CAN_REMOTE_ACK Message Sent Successfully!");
             //}
@@ -157,7 +156,7 @@ void loop()
             // Determine key pressed and mode - iterate over collection of messages
             int i = 0;
             int messagesCount = 14;
-            while (i < messagesCount && memcmp(CAN_RECEIVED_MESSAGE, RemoteMessages[i], 8) != 0)
+            while (i < messagesCount && memcmp(canReceivedMsg, RemoteMessages[i], 8) != 0)
             {
                 i++;
             }
@@ -243,15 +242,15 @@ void loop()
         //else
         //{
         //    Serial.print("CAN ID: ");
-        //    Serial.print(CAN_ID, HEX);
+        //    Serial.print(canFrameID, HEX);
         //    Serial.print(" Data: ");
-        //    for (int i = 0; i < CAN_MESSAGE_LENGTH; i++) // Print each byte of the data
+        //    for (int i = 0; i < canMsgLength; i++) // Print each byte of the data
         //    {
-        //        if (CAN_RECEIVED_MESSAGE[i] < 0x10) // If data byte is less than 0x10, add a leading zero
+        //        if (canReceivedMsg[i] < 0x10) // If data byte is less than 0x10, add a leading zero
         //        {
         //            Serial.print("0");
         //        }
-        //        Serial.print(CAN_RECEIVED_MESSAGE[i], HEX);
+        //        Serial.print(canReceivedMsg[i], HEX);
         //        Serial.print(" ");
         //    }
         //    Serial.println();
@@ -269,13 +268,13 @@ void loop()
         // Handle display mode here
         switch (displayMode)
         {
-        case spd:
+        case SpeedMode:
             DisplaySpeed();
             break;
-        case vlt:
+        case VoltageMode:
             DisplayVoltage();
             break;
-        case dst:
+        case DistanceMode:
             DisplayDistance();
             break;
         default:
@@ -290,8 +289,8 @@ void loop()
 void CLIO_CAN_startSync()
 {
     unsigned char startSyncMsg[8] = {0x7A, 0x01, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
-    CAN_SEND_RESULT = CAN.sendMsgBuf(0x3DF, 0, 8, startSyncMsg);
-    //    if (CAN_SEND_RESULT == CAN_OK)
+    canSendResult = canBus.sendMsgBuf(0x3DF, 0, 8, startSyncMsg);
+    //    if (canSendResult == CAN_OK)
     //        Serial.println("startSync Message Sent Successfully!");
     //    else
     //        Serial.println("Error Sending startSync Message...");
@@ -299,8 +298,8 @@ void CLIO_CAN_startSync()
 
 void CLIO_CAN_syncOK()
 {
-    CAN.sendMsgBuf(0x3DF, 0, 8, (byte*)CLIO_CAN_KEEPALIVE);
-    //if (CAN_SEND_RESULT == CAN_OK)
+    canBus.sendMsgBuf(0x3DF, 0, 8, (byte*)CLIO_CAN_KEEPALIVE);
+    //if (canSendResult == CAN_OK)
     //    Serial.println("syncOK Message Sent Successfully!");
     //else
     //    Serial.println("Error Sending syncOK Message...");*/
@@ -309,8 +308,8 @@ void CLIO_CAN_syncOK()
 void CLIO_CAN_syncDisp()
 {
     unsigned char syncDispMsg[8] = {0x70, 0x1A, 0x11, 0x00, 0x00, 0x00, 0x00, 0x01};
-    CAN.sendMsgBuf(0x3DF, 0, 8, syncDispMsg);
-    //if (CAN_SEND_RESULT == CAN_OK)
+    canBus.sendMsgBuf(0x3DF, 0, 8, syncDispMsg);
+    //if (canSendResult == CAN_OK)
     //    Serial.println("syncDisp Message Sent Successfully!");
     //else
     //    Serial.println("Error Sending syncDisp Message...");
@@ -319,8 +318,8 @@ void CLIO_CAN_syncDisp()
 void CLIO_CAN_initDisplay()
 {
     unsigned char initDispMsg[8] = {0x70, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
-    CAN_SEND_RESULT = CAN.sendMsgBuf(0x121, 0, 8, initDispMsg);
-    //if (CAN_SEND_RESULT == CAN_OK)
+    canSendResult = canBus.sendMsgBuf(0x121, 0, 8, initDispMsg);
+    //if (canSendResult == CAN_OK)
     //    Serial.println("initDisp Message Sent Successfully!");
     //else
     //    Serial.println("Error Sending initDisp Message...");
@@ -329,8 +328,8 @@ void CLIO_CAN_initDisplay()
 void CLIO_CAN_registerDisplay()
 {
     unsigned char registerDispMsg[8] = {0x70, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
-    CAN_SEND_RESULT = CAN.sendMsgBuf(0x1B1, 0, 8, registerDispMsg);
-    //if (CAN_SEND_RESULT == CAN_OK)
+    canSendResult = canBus.sendMsgBuf(0x1B1, 0, 8, registerDispMsg);
+    //if (canSendResult == CAN_OK)
     //    Serial.println("registerDisp Message Sent Successfully!");
     //else
     //    Serial.println("Error Sending registerDisp Message...");
@@ -339,8 +338,8 @@ void CLIO_CAN_registerDisplay()
 void CLIO_CAN_enableDisplay()
 {
     unsigned char enableDispMsg[8] = {0x04, 0x52, 0x02, 0xFF, 0xFF, 0x81, 0x81, 0x81};
-    CAN_SEND_RESULT = CAN.sendMsgBuf(0x1B1, 0, 8, enableDispMsg);
-    //if (CAN_SEND_RESULT == CAN_OK)
+    canSendResult = canBus.sendMsgBuf(0x1B1, 0, 8, enableDispMsg);
+    //if (canSendResult == CAN_OK)
     //    Serial.println("enableDisp Message Sent Successfully!");
     //else
     //    Serial.println("Error Sending enableDisp Message...");
@@ -408,7 +407,7 @@ void do_send_to(word id, byte *data, byte datasz, byte filler)
         for (; i < 8; i++)
             packet[i] = filler;
 
-        CAN.sendMsgBuf((unsigned long)(id), 0, 8, packet);
+        canBus.sendMsgBuf((unsigned long)(id), 0, 8, packet);
         packetnum++;
         delay(2);
         // Wait for the response
@@ -462,10 +461,12 @@ void DisplaySpeed()
 }
 
 void DisplayVoltage()
-{
-    String msg("VLT ");
+{    
+    // rounding voltage value to 1 decimal place
     int tempValue = (int)(volIn * 10 + 0.5);
     volIn = (float)tempValue / 10;
+
+    String msg("VLT ");  
     String s(volIn);
     s = s.substring(0, 4);
     msg += s;
