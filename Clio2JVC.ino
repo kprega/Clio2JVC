@@ -481,7 +481,7 @@ void DisplayDistance()
     if (dist > 100 && dist < 1000)
     {
         msg += " ";
-        s.substring(0,3);
+        s = s.substring(0,3);
     }
     else
     {
