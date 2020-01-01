@@ -3,9 +3,9 @@
         {
             "name": "Win32",
             "includePath": [
+                "${workspaceFolder}/**",
                 "C:\\Program Files (x86)\\Arduino\\tools\\**",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
-                "${workspaceFolder}/**",
                 "C:/Users/Karol/Documents/Arduino/libraries/**",
                 "C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino",
                 "C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/EEPROM/src",

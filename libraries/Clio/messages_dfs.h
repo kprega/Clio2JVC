@@ -33,7 +33,7 @@
 // Frame IDs
 #define DISPLAY_CONTENT_FRAME_ID       0x121
 #define KEEPALIVE_FRAME_ID             0x3CF
-#define DISPLAY_RECEPTION_FRAME_ID     0x121
+#define DISPLAY_RECEPTION_FRAME_ID     0x521
 #define PING_MSG_FRAME_ID              0x1C1
 #define PONG_MSG_FRAME_ID              0x5C1
 #define REMOTE_IN_MSG_FRAME_ID         0x0A9

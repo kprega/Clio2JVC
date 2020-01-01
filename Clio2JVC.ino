@@ -4,6 +4,7 @@
 #include "SimpleTimer.h"
 #include "JvcRadio.h"
 #include <commands_dfs.h>
+#include <messages_dfs.h>
 
 // Objects
 SimpleTimer timer;
@@ -54,10 +55,10 @@ unsigned char canReceivedMsg[8];
 long unsigned int canFrameID;
 byte canSendResult;
 
-const unsigned char CLIO_CAN_KEEPALIVE[8]     = {0x79, 0x00, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
-const unsigned char CLIO_CAN_KEEPALIVE_ACK[8] = {0x69, 0x00, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2};
-const unsigned char CLIO_CAN_5C1_MESSAGE[8]   = {0x74, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
-const unsigned char CLIO_CAN_REMOTE_ACK[8]    = {0x74, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
+//const unsigned char CLIO_CAN_KEEPALIVE[8]     = {0x79, 0x00, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
+//const unsigned char CLIO_CAN_KEEPALIVE_ACK[8] = {0x69, 0x00, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2, 0xA2};
+//const unsigned char CLIO_CAN_5C1_MESSAGE[8]   = {0x74, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
+//const unsigned char CLIO_CAN_REMOTE_ACK[8]    = {0x74, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
 
 const unsigned char RemoteMessages[14][8] =
     {
@@ -101,20 +102,47 @@ void setup()
     pinMode(voltagePin, INPUT);
 
     // Initialize display
-    CLIO_CAN_startSync();
-    delay(1);
-    CLIO_CAN_syncOK();
-    delay(1);
-    CLIO_CAN_syncDisp(); // triggers 1c1 and 0a9 on the display side: response 5C1 and 4A9
-    delay(10);
-    canBus.sendMsgBuf(0x5C1, 0, 8, (byte*)CLIO_CAN_5C1_MESSAGE);
-    canBus.sendMsgBuf(0x4A9, 0, 8, (byte*)CLIO_CAN_REMOTE_ACK);
-    CLIO_CAN_initDisplay();
-    delay(1);
-    CLIO_CAN_registerDisplay();
-    delay(1);
-    CLIO_CAN_enableDisplay();
-    delay(50 + 10);
+    int msgSentOkCounter = 0;
+    bool allMsgSentOk = false;
+    while (!allMsgSentOk)
+    {
+        msgSentOkCounter = 0;
+        canSendResult = canBus.sendMsgBuf(DISPLAY_SYNC_FRAME_ID, 0, 8, (unsigned char[])START_SYNC_MSG);
+        delay(10);
+        if (canSendResult == CAN_OK) msgSentOkCounter++;
+
+        canSendResult = canBus.sendMsgBuf(DISPLAY_SYNC_FRAME_ID, 0, 8, (unsigned char[])KEEPALIVE);
+        delay(10);
+        if (canSendResult == CAN_OK) msgSentOkCounter++;
+
+        // triggers 1c1 and 0a9 on the display side: response 5C1 and 4A9
+        canSendResult = canBus.sendMsgBuf(DISPLAY_SYNC_FRAME_ID, 0, 8, (unsigned char[])SYNC_DISP_MSG);
+        delay(10);
+        if (canSendResult == CAN_OK) msgSentOkCounter++;
+        // 1C1 response => 5C1
+        canSendResult = canBus.sendMsgBuf(PONG_MSG_FRAME_ID, 0, 8, (unsigned char[])PONG_MSG);
+        delay(10);
+        if (canSendResult == CAN_OK) msgSentOkCounter++;
+        // 0A9 response => 4A9
+        canSendResult = canBus.sendMsgBuf(REMOTE_OUT_MSG_FRAME_ID, 0, 8, (unsigned char[])PONG_MSG);
+        delay(10);
+        if (canSendResult == CAN_OK) msgSentOkCounter++;
+    
+        canSendResult = canBus.sendMsgBuf(DISPLAY_CONTENT_FRAME_ID, 0, 8, (unsigned char[])INIT_DISP_MSG);
+        delay(10);
+        if (canSendResult == CAN_OK) msgSentOkCounter++;
+
+        canSendResult = canBus.sendMsgBuf(DISPLAY_ENABLE_FRAME_ID, 0, 8, (unsigned char[])INIT_DISP_MSG);
+        delay(1);
+        if (canSendResult == CAN_OK) msgSentOkCounter++;
+
+        canSendResult = canBus.sendMsgBuf(DISPLAY_ENABLE_FRAME_ID, 0, 8, (unsigned char[])ENABLE_DISP_MSG);
+        delay(50);
+        if (canSendResult == CAN_OK) msgSentOkCounter++;
+
+        allMsgSentOk = msgSentOkCounter == 8;
+    }
+    
     timer.setInterval(700, CLIO_CAN_syncOK);
 }
 
@@ -124,23 +152,23 @@ void loop()
     if (!digitalRead(interruptPin))
     {
         canBus.readMsgBuf(&canFrameID, &canMsgLength, canReceivedMsg); // read data,  canMsgLength: data length, buf: data buf
-        if (canFrameID == 0x3CF && memcmp(canReceivedMsg, CLIO_CAN_KEEPALIVE_ACK, 8) == 0)
+        if (canFrameID == KEEPALIVE_FRAME_ID && memcmp(canReceivedMsg, (unsigned char[])KEEPALIVE_ACK, 8) == 0)
         {
             // Keep alive reception confirmation received
         }
-        else if (canFrameID == 0x521)
+        else if (canFrameID == DISPLAY_RECEPTION_FRAME_ID)
         {
             // Display confirms reception of new content
         }
-        else if (canFrameID == 0x1C1)
+        else if (canFrameID == PING_MSG_FRAME_ID)
         {
             // Ping - pong
-            canBus.sendMsgBuf(0x5C1, 0, 8, (byte*)CLIO_CAN_5C1_MESSAGE);
+            canBus.sendMsgBuf(PONG_MSG_FRAME_ID, 0, 8, (unsigned char[])PONG_MSG);
         }
         // Receiving from the steering wheel remote
-        else if (canFrameID == 0x0A9)
+        else if (canFrameID == REMOTE_IN_MSG_FRAME_ID)
         {
-            canSendResult = canBus.sendMsgBuf(0x4A9, 0, 8, (byte*)CLIO_CAN_REMOTE_ACK);
+            canSendResult = canBus.sendMsgBuf(REMOTE_OUT_MSG_FRAME_ID, 0, 8, (unsigned char[])PONG_MSG);
             //if (canSendResult == CAN_OK)
             //{
             //    Serial.println("CLIO_CAN_REMOTE_ACK Message Sent Successfully!");
@@ -286,64 +314,59 @@ void loop()
     }
 }
 
-void CLIO_CAN_startSync()
-{
-    unsigned char startSyncMsg[8] = {0x7A, 0x01, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
-    canSendResult = canBus.sendMsgBuf(0x3DF, 0, 8, startSyncMsg);
-    //    if (canSendResult == CAN_OK)
-    //        Serial.println("startSync Message Sent Successfully!");
-    //    else
-    //        Serial.println("Error Sending startSync Message...");
-}
+// void CLIO_CAN_startSync()
+// {
+//     canSendResult = canBus.sendMsgBuf(DISPLAY_SYNC_FRAME_ID, 0, 8, (unsigned char[])START_SYNC_MSG);
+//     //    if (canSendResult == CAN_OK)
+//     //        Serial.println("startSync Message Sent Successfully!");
+//     //    else
+//     //        Serial.println("Error Sending startSync Message...");
+// }
 
 void CLIO_CAN_syncOK()
 {
-    canBus.sendMsgBuf(0x3DF, 0, 8, (byte*)CLIO_CAN_KEEPALIVE);
+    canSendResult = canBus.sendMsgBuf(DISPLAY_SYNC_FRAME_ID, 0, 8, (unsigned char[])KEEPALIVE);
     //if (canSendResult == CAN_OK)
     //    Serial.println("syncOK Message Sent Successfully!");
     //else
     //    Serial.println("Error Sending syncOK Message...");*/
 }
 
-void CLIO_CAN_syncDisp()
-{
-    unsigned char syncDispMsg[8] = {0x70, 0x1A, 0x11, 0x00, 0x00, 0x00, 0x00, 0x01};
-    canBus.sendMsgBuf(0x3DF, 0, 8, syncDispMsg);
-    //if (canSendResult == CAN_OK)
-    //    Serial.println("syncDisp Message Sent Successfully!");
-    //else
-    //    Serial.println("Error Sending syncDisp Message...");
-}
+// void CLIO_CAN_syncDisp()
+// {
+//     canSendResult = canBus.sendMsgBuf(DISPLAY_SYNC_FRAME_ID, 0, 8, (unsigned char[])SYNC_DISP_MSG);
+//     //if (canSendResult == CAN_OK)
+//     //    Serial.println("syncDisp Message Sent Successfully!");
+//     //else
+//     //    Serial.println("Error Sending syncDisp Message...");
+// }
 
-void CLIO_CAN_initDisplay()
-{
-    unsigned char initDispMsg[8] = {0x70, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
-    canSendResult = canBus.sendMsgBuf(0x121, 0, 8, initDispMsg);
-    //if (canSendResult == CAN_OK)
-    //    Serial.println("initDisp Message Sent Successfully!");
-    //else
-    //    Serial.println("Error Sending initDisp Message...");
-}
+// void CLIO_CAN_initDisplay()
+// {
+//     canSendResult = canBus.sendMsgBuf(DISPLAY_CONTENT_FRAME_ID, 0, 8, (unsigned char[])INIT_DISP_MSG);
+//     //if (canSendResult == CAN_OK)
+//     //    Serial.println("initDisp Message Sent Successfully!");
+//     //else
+//     //    Serial.println("Error Sending initDisp Message...");
+// }
 
-void CLIO_CAN_registerDisplay()
-{
-    unsigned char registerDispMsg[8] = {0x70, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81};
-    canSendResult = canBus.sendMsgBuf(0x1B1, 0, 8, registerDispMsg);
-    //if (canSendResult == CAN_OK)
-    //    Serial.println("registerDisp Message Sent Successfully!");
-    //else
-    //    Serial.println("Error Sending registerDisp Message...");
-}
+// void CLIO_CAN_registerDisplay()
+// {
+//     canSendResult = canBus.sendMsgBuf(DISPLAY_ENABLE_FRAME_ID, 0, 8, (unsigned char[])INIT_DISP_MSG);
+//     //if (canSendResult == CAN_OK)
+//     //    Serial.println("registerDisp Message Sent Successfully!");
+//     //else
+//     //    Serial.println("Error Sending registerDisp Message...");
+// }
 
-void CLIO_CAN_enableDisplay()
-{
-    unsigned char enableDispMsg[8] = {0x04, 0x52, 0x02, 0xFF, 0xFF, 0x81, 0x81, 0x81};
-    canSendResult = canBus.sendMsgBuf(0x1B1, 0, 8, enableDispMsg);
-    //if (canSendResult == CAN_OK)
-    //    Serial.println("enableDisp Message Sent Successfully!");
-    //else
-    //    Serial.println("Error Sending enableDisp Message...");
-}
+// void CLIO_CAN_enableDisplay()
+// {
+//     canSendResult = canBus.sendMsgBuf(DISPLAY_ENABLE_FRAME_ID, 0, 8, (unsigned char[])ENABLE_DISP_MSG);
+//     //if (canSendResult == CAN_OK)
+//     //    Serial.println("enableDisp Message Sent Successfully!");
+//     //else
+//     //    Serial.println("Error Sending enableDisp Message...");
+// }
 
 void PrintDisplay(String s)
 {
@@ -374,7 +397,7 @@ void PrintDisplay(String s)
     TextCmd.toCharArray(charArray, 27);
 
     // Sending message
-    send_to_display(0x121, (byte *)(charArray), 27);
+    send_to_display(DISPLAY_CONTENT_FRAME_ID, (byte *)(charArray), 27);
 }
 
 void send_to_display(word id, byte *data, byte datasz)
