@@ -21,6 +21,7 @@ int addedVolume = 0;
 const int addedVolumeLimit = 8;     // volume can be increased up to 8 points
 const int activationThreshold = 50; // km/h
 const int changeThreshold = 10;     // km/h
+bool isMuted = false;
 
 // Variables used for speed calculation
 const double distance = 100; // mm
@@ -215,6 +216,7 @@ void loop()
             case 4:
                 //Serial.println("Pause pressed");
                 PrintDisplay("MUTE");
+                isMuted = !isMuted;
                 carRadio.Action(MUTE);
                 break;
             case 5:
@@ -310,7 +312,10 @@ void loop()
         }
         refreshTime = millis();
         
-        AdjustVolume();
+        if (!isMuted)
+        {
+            AdjustVolume();
+        }
     }
 }
 
