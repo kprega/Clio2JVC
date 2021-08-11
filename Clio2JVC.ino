@@ -1,7 +1,7 @@
 #include "SPI.h"
 #include "mcp_can.h" // https://github.com/coryjfowler/MCP_CAN_lib
 #include "mcp_can_dfs.h"
-#include "SimpleTimer.h"
+#include "SimpleTimer.h"// https://github.com/schinken/SimpleTimer
 #include "JvcRadio.h"
 #include <commands_dfs.h>
 #include <messages_dfs.h>
