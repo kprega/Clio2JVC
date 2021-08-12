@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------------- //
-// JvcRadio.h                                                                          //
+// JvcRadio.h                                                                               //
 // ----------------------------------------------------------------------------------- //
 // Class for handling communication with JVC car radio through the remote control wire //
 // Based on:                                                                           //

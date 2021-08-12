@@ -1,5 +1,6 @@
 {
     "board": "arduino:avr:leonardo",
     "programmer": "AVRISP mkII",
-    "port": "COM3"
+    "port": "COM3",
+    "sketch": "Clio2JVC.ino"
 }
