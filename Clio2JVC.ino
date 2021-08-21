@@ -96,16 +96,12 @@ void setup()
 {
     // Wait for 2s to allow car power up all systems
     delay(2000);
-
+  
     ReadSettings();
     displayMode = (DisplayModeEnum)settings[3];
     
     // CAN 11 bits 500kbauds
     canBus.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ);
-    //    if (CAN.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) // Baud rates defined in mcp_can_dfs.h
-    //        Serial.println("CAN Init OK.");
-    //    else
-    //        Serial.println("CAN Init Failed.");
     canBus.setMode(MCP_NORMAL);
     pinMode(interruptPin, INPUT); // start interrupt
     
@@ -485,10 +481,10 @@ void DisplayDistance()
 
 void AdjustVolume()
 {
-    if (velocity > settings[2])
+    if (velocity > (double)settings[1])
     {
         // calculate expected value of added volume
-        int expectedValue = floor((velocity - settings[2]) / settings[3]);
+        int expectedValue = floor((velocity - (double)settings[1]) / (double)settings[2]);
         // adjust volume if added volume level differs from expected
         if (addedVolume < expectedValue)
         {
@@ -524,7 +520,7 @@ void ReadSettings()
 {
     for (int i = 0; i < 4; i++)
     {
-        int value = -1;
+        byte value = -1;
         EEPROM.get(i, value);
         // Override setting only if value is not default
         if (value != 255)
